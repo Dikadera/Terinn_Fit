@@ -161,8 +161,16 @@ function App() {
     const orderId = 'TF-' + Math.floor(100000 + Math.random() * 900000);
 
     if (paymentChoice === 'flutterwave') {
-      const flwKey = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY || 'FLWPUBK_TEST-da72e21bfb9208b8afbb18cb';
+      let flwKey = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY || 'FLWPUBK_TEST-da72e21bfb9208b8afbb18cb';
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem('terinn_admin_settings') || '{}');
+        if (savedSettings.flwPublicKey) {
+          flwKey = savedSettings.flwPublicKey;
+        }
+      } catch (err) {}
       
+      flwKey = (flwKey || '').trim();
+
       if (!window.FlutterwaveCheckout) {
         alert('Flutterwave SDK is loading. Please check your network and try again in a moment.');
         return;
@@ -170,14 +178,15 @@ function App() {
 
       window.FlutterwaveCheckout({
         public_key: flwKey,
+        PBFPubKey: flwKey,
         tx_ref: orderId,
         amount: finalTotal,
         currency: 'NGN',
         payment_options: 'card,banktransfer,ussd,account',
         customer: {
-          email: custEmail,
-          phone_number: custPhone,
-          name: custName,
+          email: custEmail.trim(),
+          phone_number: custPhone.trim(),
+          name: custName.trim(),
         },
         customizations: {
           title: 'TERINN FIT Activewear',
