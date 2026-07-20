@@ -4,6 +4,7 @@ import Home from './Home';
 import Store from './Store';
 import CartDrawer from './CartDrawer';
 import logoImg from './assets/logo.png';
+import { saveOrderToCloud, fetchOrderFromCloud } from './firebase';
 
 function App() {
   const [view, setView] = useState('home'); // 'home' or 'store'
@@ -59,24 +60,13 @@ function App() {
     }
   ];
 
-  const handleTrackSubmit = (e) => {
+  const handleTrackSubmit = async (e) => {
     e.preventDefault();
-    if (!trackQuery.trim()) return;
+    const query = trackQuery.trim();
+    if (!query) return;
 
     try {
-      let storedOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
-      if (storedOrders.length === 0) {
-        storedOrders = DEFAULT_ORDERS;
-        localStorage.setItem('terinn_admin_orders', JSON.stringify(DEFAULT_ORDERS));
-      }
-
-      const queryLower = trackQuery.trim().toLowerCase();
-      const match = storedOrders.find(o =>
-        (o.id || '').toLowerCase() === queryLower ||
-        (o.customerEmail || '').toLowerCase() === queryLower ||
-        (o.customerPhone || '').includes(queryLower)
-      );
-
+      const match = await fetchOrderFromCloud(query);
       if (match) {
         setTrackResult({ found: true, order: match });
       } else {
@@ -338,11 +328,7 @@ function App() {
               status: 'paid'
             };
 
-            try {
-              const existingOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
-              existingOrders.unshift(newOrder);
-              localStorage.setItem('terinn_admin_orders', JSON.stringify(existingOrders));
-            } catch (err) { }
+            saveOrderToCloud(newOrder);
 
             clearCart();
             setCheckoutModalOpen(false);
@@ -375,11 +361,7 @@ function App() {
         status: 'pending'
       };
 
-      try {
-        const existingOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
-        existingOrders.unshift(newOrder);
-        localStorage.setItem('terinn_admin_orders', JSON.stringify(existingOrders));
-      } catch (err) { }
+      saveOrderToCloud(newOrder);
 
       const text = `Hi Terinn Fit, I'd like to place an order!
 Order ID: ${orderId}
@@ -690,45 +672,22 @@ Please send payment details to confirm.`;
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
-                onClick={() => {
-                  const text = `Hi Terinn Fit! I just paid online for Order ${successModalData.id} (₦${successModalData.total.toLocaleString()}). Please confirm delivery details!`;
-                  window.open(`https://wa.me/2349053602119?text=${encodeURIComponent(text)}`, '_blank');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '13px 16px',
-                  borderRadius: 14,
-                  border: 'none',
-                  background: '#25d366',
-                  color: '#ffffff',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 18px rgba(37, 211, 102, 0.35)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8
-                }}
-              >
-                💬 Send Receipt to WhatsApp
-              </button>
-
-              <button
                 onClick={() => setSuccessModalData(null)}
                 className="btn-calc-submit"
                 style={{
                   width: '100%',
-                  padding: '13px 16px',
+                  padding: '14px 16px',
                   borderRadius: 14,
                   marginTop: 0,
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: 'none',
-                  fontSize: 13
+                  background: '#db2777',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: '1px'
                 }}
               >
-                Continue Shopping ➔
+                CONTINUE SHOPPING ➔
               </button>
             </div>
           </div>
@@ -793,14 +752,14 @@ Please send payment details to confirm.`;
 
             <h2 className="track-modal-title">TRACK YOUR ORDER</h2>
             <p className="track-modal-subtitle">
-              Enter your Order Reference Number (e.g. <strong>TF-104920</strong>), Email address, or WhatsApp phone number below.
+              Enter your Order Reference Number (e.g. <strong>TF-104920</strong>) below.
             </p>
 
             <form onSubmit={handleTrackSubmit} className="track-input-form">
               <input
                 type="text"
                 className="track-input-field"
-                placeholder="Order Reference ID *"
+                placeholder="Order Reference ID (e.g. TF-104920) *"
                 required
                 value={trackQuery}
                 onChange={(e) => setTrackQuery(e.target.value)}
