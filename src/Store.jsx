@@ -370,12 +370,12 @@ function Store({ addToCart }) {
                         </button>
                       </div>
                       <div className="product-info">
+                        <span className="product-cat-label">{prod.category || 'Activewear'}</span>
                         <h3 className="product-title">{prod.name}</h3>
-                        <span className="product-price">₦{prod.price.toLocaleString()}</span>
+                        <span className="product-price">₦{Number(prod.price).toLocaleString()}</span>
                         
                         <button 
                           className="btn btn-add-cart"
-                          style={{ marginTop: 'auto' }}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddCatalogItem(prod, e);
@@ -423,12 +423,12 @@ function Store({ addToCart }) {
                           </button>
                         </div>
                         <div className="product-info">
+                          <span className="product-cat-label">{prod.category || 'Activewear'}</span>
                           <h3 className="product-title">{prod.name}</h3>
-                          <span className="product-price">₦{prod.price.toLocaleString()}</span>
+                          <span className="product-price">₦{Number(prod.price).toLocaleString()}</span>
                           
                           <button 
                             className="btn btn-add-cart"
-                            style={{ marginTop: 'auto' }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleAddCatalogItem(prod, e);

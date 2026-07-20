@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from './assets/logo.png';
 
-function Navbar({ view, setView, cartCount, setIsCartOpen, mobileMenuOpen, setMobileMenuOpen }) {
+function Navbar({ view, setView, cartCount, setIsCartOpen, mobileMenuOpen, setMobileMenuOpen, onOpenTrackModal }) {
   const [scrolled, setScrolled] = useState(false);
 
   // Scroll listener — marks navbar as scrolled past 60px
@@ -48,10 +48,10 @@ function Navbar({ view, setView, cartCount, setIsCartOpen, mobileMenuOpen, setMo
               onClick={(e) => { e.preventDefault(); handleNavClick('store'); }}>
               Store
             </a>
-            {/* <a href="#lookbook" className="nav-link"
-              onClick={(e) => { e.preventDefault(); handleNavClick('home', '#lookbook'); }}>
-              Lookbook
-            </a> */}
+            <a href="#" className="nav-link"
+              onClick={(e) => { e.preventDefault(); if (onOpenTrackModal) onOpenTrackModal(); }}>
+              Track Item
+            </a>
             <a href="#size-guide" className="nav-link"
               onClick={(e) => { e.preventDefault(); handleNavClick('home', '#size-guide'); }}>
               Sizing
@@ -88,19 +88,52 @@ function Navbar({ view, setView, cartCount, setIsCartOpen, mobileMenuOpen, setMo
 
       {/* Mobile Drawer */}
       <div className={`mobile-drawer ${mobileMenuOpen ? 'active' : ''}`} id="mobileDrawer">
+        <div className="drawer-inner-header">
+          <span className="drawer-collection-tag">NAVIGATION MENU</span>
+        </div>
+
         <div className="drawer-content">
           <a href="#" className={`drawer-link ${view === 'home' ? 'active' : ''}`}
-            onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>Home</a>
+            onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>
+            <span className="drawer-num">01</span>
+            <span className="drawer-text">Home</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
           <a href="#" className={`drawer-link ${view === 'store' ? 'active' : ''}`}
-            onClick={(e) => { e.preventDefault(); handleNavClick('store'); }}>Store</a>
-          <a href="#lookbook" className="drawer-link"
-            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#lookbook'); }}>Lookbook</a>
+            onClick={(e) => { e.preventDefault(); setView('store'); setMobileMenuOpen(false); }}>
+            <span className="drawer-num">02</span>
+            <span className="drawer-text">Shop Collection</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
+          <a href="#" className="drawer-link"
+            onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); if (onOpenTrackModal) onOpenTrackModal(); }}>
+            <span className="drawer-num">03</span>
+            <span className="drawer-text">Track Item</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
           <a href="#size-guide" className="drawer-link"
-            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#size-guide'); }}>Sizing</a>
+            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#size-guide'); }}>
+            <span className="drawer-num">04</span>
+            <span className="drawer-text">Size Calculator</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
           <a href="#policies" className="drawer-link"
-            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#policies'); }}>Info</a>
+            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#policies'); }}>
+            <span className="drawer-num">05</span>
+            <span className="drawer-text">Store Info</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
           <a href="#faq" className="drawer-link"
-            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#faq'); }}>FAQ</a>
+            onClick={(e) => { e.preventDefault(); handleNavClick('home', '#faq'); }}>
+            <span className="drawer-num">06</span>
+            <span className="drawer-text">FAQ & Support</span>
+            <span className="drawer-arrow">➔</span>
+          </a>
+        </div>
+
+        <div className="drawer-footer-note">
+          <span>TERINN FIT ACTIVEWEAR</span>
+          <span>LAGOS • NIGERIA</span>
         </div>
       </div>
     </>

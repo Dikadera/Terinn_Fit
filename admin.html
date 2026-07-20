@@ -737,6 +737,9 @@
                 <li class="menu-item" data-tab="showcase">
                     <span>Model Showcase Carousel</span>
                 </li>
+                <li class="menu-item" data-tab="subscribers">
+                    <span>VIP Subscribers</span>
+                </li>
                 <li class="menu-item" data-tab="settings">
                     <span>Store Configuration</span>
                 </li>
@@ -893,12 +896,12 @@
                         <input type="text" id="order-search-input" placeholder="Search orders...">
                     </div>
                     <div style="display:flex; gap:12px;">
-                        <select class="status-dropdown" id="order-filter-dropdown">
-                            <option value="all">All Orders</option>
-                            <option value="pending">Pending</option>
-                            <option value="paid">Paid</option>
-                            <option value="processing">Processing</option>
-                            <option value="completed">Completed</option>
+                        <select id="order-filter-dropdown" class="form-input" style="width:170px;">
+                            <option value="all">All Statuses</option>
+                            <option value="processing">Processing ⏳</option>
+                            <option value="dispatched">Dispatched 🚚</option>
+                            <option value="delivered">Delivered 📦</option>
+                            <option value="pending">Pending Payment 💳</option>
                         </select>
                         <button class="btn btn-ghost" id="export-orders-btn">Export CSV</button>
                     </div>
@@ -980,6 +983,38 @@
                                 </tr>
                             </thead>
                             <tbody id="showcase-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ════════════════════ VIP SUBSCRIBERS TAB ════════════════════ -->
+            <div class="tab-panel" id="tab-subscribers">
+                <div class="action-bar">
+                    <div>
+                        <h2 style="font-family: var(--font-heading); font-size: 20px; color: var(--color-wine);">VIP Newsletter & Pre-Order Subscribers</h2>
+                        <p style="font-size: 13px; color: #666; margin-top: 4px;">Directory of email and WhatsApp subscribers captured from storefront VIP popups.</p>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <input type="text" id="subscriber-search-input" class="form-input" placeholder="Search email or phone..." style="width:240px; font-size:13px;">
+                        <button class="btn btn-primary" id="export-subscribers-btn">📥 Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subscriber Email</th>
+                                    <th>WhatsApp / Phone</th>
+                                    <th>Date Subscribed</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subscribers-table-body">
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
@@ -1341,6 +1376,8 @@
         const pageTitle = document.getElementById('page-title');
         const pageSubtitle = document.getElementById('page-subtitle');
 
+        let subscribers = load('terinn_admin_subscribers', []);
+
         const tabMetadata = {
             overview: { title: 'Store Overview', subtitle: 'Snapshot of sales metrics and store activities.' },
             products: { title: 'Product Catalog', subtitle: 'Manage activewear inventory catalog and prices.' },
@@ -1348,6 +1385,7 @@
             orders: { title: 'Order Manager', subtitle: 'Review checkout purchases and update delivery statuses.' },
             customers: { title: 'Customer Directory', subtitle: 'Manage unique shoppers compiled from checkouts.' },
             showcase: { title: 'Model Showcase Carousel', subtitle: 'Manage activewear model slides shown in Designed to Snatch section.' },
+            subscribers: { title: 'VIP Subscribers Directory', subtitle: 'Manage email and WhatsApp newsletter subscribers.' },
             settings: { title: 'Store Configuration', subtitle: 'Configure announcement marquee, WhatsApp checkout info.' }
         };
 
@@ -1374,6 +1412,8 @@
                     renderProductsTable();
                 } else if (tab === 'showcase') {
                     renderShowcaseTable();
+                } else if (tab === 'subscribers') {
+                    renderSubscribersTable();
                 }
             });
         });
@@ -1886,10 +1926,10 @@
                     <td><strong style="color:#db2777;">${fmtMoney(o.total)}</strong></td>
                     <td>
                         <select class="status-dropdown" onchange="updateOrderStatus('${o.id}', this.value)">
-                            <option value="pending" ${currentStatus==='pending'?'selected':''}>Pending</option>
-                            <option value="paid" ${currentStatus==='paid'?'selected':''}>Paid</option>
-                            <option value="processing" ${currentStatus==='processing'?'selected':''}>Processing</option>
-                            <option value="completed" ${currentStatus==='completed'?'selected':''}>Completed</option>
+                            <option value="Processing" ${currentStatus==='processing' || currentStatus==='pending' ?'selected':''}>Processing ⏳</option>
+                            <option value="Dispatched" ${currentStatus==='dispatched'?'selected':''}>Dispatched 🚚</option>
+                            <option value="Delivered" ${currentStatus==='delivered' || currentStatus==='completed' ?'selected':''}>Delivered 📦</option>
+                            <option value="Pending Payment" ${currentStatus==='pending payment'?'selected':''}>Pending Payment 💳</option>
                         </select>
                     </td>
                     <td style="text-align:right;">
@@ -2096,6 +2136,65 @@
             showToast('Orders exported successfully!', 'success');
         });
 
+        // ─── VIP Subscribers Logic ───
+        const renderSubscribersTable = () => {
+            const search = (document.getElementById('subscriber-search-input')?.value || '').toLowerCase();
+            const body = document.getElementById('subscribers-table-body');
+            if (!body) return;
+
+            const filtered = subscribers.filter(s => 
+                (s.email || '').toLowerCase().includes(search) || 
+                (s.phone || '').includes(search)
+            );
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:24px;">No VIP subscribers recorded yet.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = filtered.map(s => `
+                <tr>
+                    <td><strong style="color:var(--color-wine); font-size:14px;">${s.email}</strong></td>
+                    <td><a href="https://wa.me/${(s.phone || '').replace(/\D/g,'')}" target="_blank" style="color:#db2777; font-weight:700; text-decoration:none;">${s.phone || 'N/A'} 💬</a></td>
+                    <td style="font-size:12.5px; color:#777;">${s.date ? fmtDate(s.date) : 'N/A'}</td>
+                    <td style="text-align:right;">
+                        <button class="action-trigger" onclick="deleteSubscriber('${s.id}')" title="Delete Subscriber">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        window.deleteSubscriber = async (id) => {
+            if (await showConfirm('Delete this subscriber entry?', 'Delete Subscriber', 'Delete')) {
+                subscribers = subscribers.filter(s => s.id !== id);
+                save('terinn_admin_subscribers', subscribers);
+                renderSubscribersTable();
+                showToast('Subscriber deleted!', 'success');
+            }
+        };
+
+        document.getElementById('subscriber-search-input')?.addEventListener('input', renderSubscribersTable);
+
+        document.getElementById('export-subscribers-btn')?.addEventListener('click', () => {
+            if (subscribers.length === 0) return showToast('No subscribers to export.', 'error');
+            const headers = ['Subscriber Email', 'WhatsApp Contact', 'Date Subscribed'];
+            const rows = subscribers.map(s => [
+                s.email,
+                s.phone,
+                s.date ? new Date(s.date).toISOString() : ''
+            ]);
+
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'terinn_vip_subscribers.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('VIP Subscribers exported!', 'success');
+        });
+
         // ─── Initial Render ───
         updateKPIs();
         renderProductsTable();
@@ -2103,6 +2202,7 @@
         renderOrdersTable();
         renderCustomersTable();
         renderShowcaseTable();
+        renderSubscribersTable();
         loadSettings();
     </script>
 </body>

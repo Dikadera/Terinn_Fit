@@ -73,7 +73,7 @@ const colorHex = {
 };
 
 
-function Home({ setView, addToCart }) {
+function Home({ setView, addToCart, onOpenTrackModal }) {
   // Helper to add a bestseller product to cart
   const handleAddBestseller = (p, e) => {
     e.stopPropagation();
@@ -288,15 +288,33 @@ function Home({ setView, addToCart }) {
 
   // Waitlist Form State
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [waitlistStatus, setWaitlistStatus] = useState('');
 
   const handleWaitlistSubmit = (e) => {
     e.preventDefault();
+    if (!email.trim()) return;
+
     setWaitlistStatus('Submitting...');
+
+    try {
+      const stored = localStorage.getItem('terinn_admin_subscribers');
+      const subscribers = stored ? JSON.parse(stored) : [];
+      const newSub = {
+        id: 'sub-' + Date.now(),
+        email: email.trim(),
+        phone: phone.trim() || 'N/A',
+        date: new Date().toISOString()
+      };
+      subscribers.push(newSub);
+      localStorage.setItem('terinn_admin_subscribers', JSON.stringify(subscribers));
+    } catch(err) {}
+
     setTimeout(() => {
-      setWaitlistStatus('Welcome to the Terinn Fit Inner Circle! 🎉');
+      setWaitlistStatus('Welcome to the Terinn Fit Inner Circle! 🎉 15% discount registered.');
       setEmail('');
-    }, 1000);
+      setPhone('');
+    }, 800);
   };
 
   return (
@@ -320,14 +338,30 @@ function Home({ setView, addToCart }) {
 
               <div className="hero-card-buttons-new">
                 <button onClick={() => setView('store')} className="hero-card-btn primary">
-                  EXPLORE CUSTOMIZER
+                  SHOP COLLECTION
                 </button>
-                <a href="#lookbook" className="hero-card-btn secondary">
-                  VIEW LOOKBOOK
-                </a>
+                <button 
+                  onClick={() => { if (onOpenTrackModal) onOpenTrackModal(); }} 
+                  className="hero-card-btn secondary hero-track-btn-desktop"
+                >
+                  📦 TRACK YOUR ITEM
+                </button>
               </div>
             </div>
+          </div>
 
+          {/* Mobile Only: Outside Card Container */}
+          <div className="hero-outside-track-card" onClick={() => { if (onOpenTrackModal) onOpenTrackModal(); }}>
+            <div className="track-card-left">
+              <span className="live-dot" style={{ width: 8, height: 8 }}></span>
+              <div style={{ textAlign: 'left' }}>
+                <span className="track-card-tag">ALREADY ORDERED?</span>
+                <h4 className="track-card-title">Track Your Item Status</h4>
+              </div>
+            </div>
+            <button className="track-card-arrow-btn">
+              TRACK ➔
+            </button>
           </div>
 
           {/* Right: Model photo overlay */}
@@ -348,23 +382,35 @@ function Home({ setView, addToCart }) {
 
           <div className="bestsellers-grid">
             {bestsellers.map((prod) => (
-              <div key={prod.id} className="bestseller-card" onClick={() => setView('store')}>
-                <div className="bestseller-img-wrap">
+              <div key={prod.id} className="bestseller-card compact-product-card" onClick={() => setView('store')}>
+                <div className="bestseller-img-wrap product-img-wrap">
                   <img src={prod.image} alt={prod.name} onError={(e) => { e.target.src = '/src/assets/logo.png'; }} />
-                  {prod.tag && <span className="bestseller-tag">{prod.tag}</span>}
+                  {prod.tag && <span className="product-tag">{prod.tag}</span>}
+                  <button 
+                    type="button"
+                    className="quick-view-eye-btn-center"
+                    title="Quick View Product"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setView('store');
+                    }}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
                 </div>
-                <div className="bestseller-info">
-                  <span className="bestseller-cat">{prod.category || 'Activewear'}</span>
-                  <h3 className="bestseller-name">{prod.name}</h3>
-                  <div className="bestseller-bottom">
-                    <span className="bestseller-price">₦{prod.price.toLocaleString()}</span>
-                    <button 
-                      className="bestseller-add-btn" 
-                      onClick={(e) => handleAddBestseller(prod, e)}
-                    >
-                      Add to Bag
-                    </button>
-                  </div>
+                <div className="bestseller-info product-info">
+                  <span className="product-cat-label">{prod.category || 'Activewear'}</span>
+                  <h3 className="product-title">{prod.name}</h3>
+                  <span className="product-price">₦{Number(prod.price).toLocaleString()}</span>
+                  <button 
+                    className="btn btn-add-cart" 
+                    onClick={(e) => handleAddBestseller(prod, e)}
+                  >
+                    Add to Bag
+                  </button>
                 </div>
               </div>
             ))}
@@ -591,10 +637,15 @@ function Home({ setView, addToCart }) {
                 <h3 className="look-title">{modelShowcaseSlides[modelSlideIdx].title}</h3>
                 <p className="look-desc">{modelShowcaseSlides[modelSlideIdx].desc}</p>
                 <div className="look-action-row">
-                  <span className="look-price">{modelShowcaseSlides[modelSlideIdx].price}</span>
+                  <span className="look-price">
+                    {
+                      String(modelShowcaseSlides[modelSlideIdx].price || '').startsWith('₦')
+                        ? modelShowcaseSlides[modelSlideIdx].price
+                        : `₦${Number(modelShowcaseSlides[modelSlideIdx].price || 0).toLocaleString()}`
+                    }
+                  </span>
                   <button 
-                    className="btn btn-calc-submit" 
-                    style={{ margin: 0, padding: '0.65rem 1.4rem', width: 'auto', borderRadius: 25, fontSize: '0.78rem' }}
+                    className="btn btn-calc-submit btn-shop-this-look" 
                     onClick={() => setView('store')}
                   >
                     Shop This Look &rarr;
@@ -727,14 +778,21 @@ function Home({ setView, addToCart }) {
           <h2 className="waitlist-main-title">Join The Inner Circle</h2>
           <p>Subscribe to be notified of the next exclusive activewear drop. Early access members get 15% off their first custom set.</p>
           <form onSubmit={handleWaitlistSubmit} className="waitlist-form-editorial">
-            <div className="form-input-row">
+            <div className="form-input-row-vip">
               <input 
                 type="email" 
                 className="waitlist-email-input" 
-                placeholder="Your email address" 
+                placeholder="Email address *" 
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+              />
+              <input 
+                type="tel" 
+                className="waitlist-email-input" 
+                placeholder="WhatsApp / Phone (Optional)" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
               <button type="submit" className="waitlist-submit-btn">Subscribe</button>
             </div>

@@ -14,6 +14,52 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Preloader State
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  // Track Item Modal State
+  const [trackModalOpen, setTrackModalOpen] = useState(false);
+  const [trackQuery, setTrackQuery] = useState('');
+  const [trackResult, setTrackResult] = useState(null);
+
+  const handleTrackSubmit = (e) => {
+    e.preventDefault();
+    if (!trackQuery.trim()) return;
+
+    try {
+      const storedOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+      const queryLower = trackQuery.trim().toLowerCase();
+      const match = storedOrders.find(o =>
+        (o.id || '').toLowerCase() === queryLower ||
+        (o.customerEmail || '').toLowerCase() === queryLower ||
+        (o.customerPhone || '').includes(queryLower)
+      );
+
+      if (match) {
+        setTrackResult({ found: true, order: match });
+      } else {
+        setTrackResult({ found: false, query: trackQuery });
+      }
+    } catch (err) {
+      setTrackResult({ found: false, query: trackQuery });
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => setLoading(false), 500);
+          return 100;
+        }
+        return Math.min(100, prev + Math.floor(Math.random() * 18) + 12);
+      });
+    }, 110);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('terinn_cart_react', JSON.stringify(cart));
   }, [cart]);
@@ -27,37 +73,78 @@ function App() {
         const hasGymGloves = parsed.some(p => p.id === 'gym-gloves');
         if (!hasGymGloves) {
           const defaultAccs = [
-            { id: 'gym-gloves',   name: 'Terinn Gym Gloves',   price: 12000, category: 'Accessories', stock: 15, tag: '', image: '/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
-            { id: 'sanitizer',    name: 'Terinn Sanitizer',    price: 3500,  category: 'Accessories', stock: 50, tag: '', image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
-            { id: 'water-bottle', name: 'Terinn Water Bottle', price: 8500,  category: 'Accessories', stock: 25, tag: '', image: '/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
-            { id: 'bands',        name: 'Terinn Gym Bands',    price: 6000,  category: 'Accessories', stock: 30, tag: '', image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
+            { id: 'gym-gloves', name: 'Terinn Gym Gloves', price: 12000, category: 'Accessories', stock: 15, tag: '', image: '/assets/gym_gloves.png', colors: ['Midnight Black', 'Slate Blue'] },
+            { id: 'sanitizer', name: 'Terinn Sanitizer', price: 3500, category: 'Accessories', stock: 50, tag: '', image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
+            { id: 'water-bottle', name: 'Terinn Water Bottle', price: 8500, category: 'Accessories', stock: 25, tag: '', image: '/assets/water_bottle.png', colors: ['Terinn Mauve', 'Midnight Black'] },
+            { id: 'bands', name: 'Terinn Gym Bands', price: 6000, category: 'Accessories', stock: 30, tag: '', image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
           ];
           localStorage.setItem('terinn_admin_products', JSON.stringify([...parsed, ...defaultAccs]));
           window.location.reload();
         }
       } else {
         const defaultList = [
-          { id: 'sports-bra',   name: 'Terinn Sports Bra',    price: 18000, category: 'Tops',    stock: 24, tag: 'Best Seller', image: '/assets/sports_bra_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'leggings',     name: 'Terinn Leggings',       price: 20000, category: 'Bottoms', stock: 18, tag: 'Best Seller', image: '/assets/leggings_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'crop-top',     name: 'Terinn Crop Top',       price: 20000, category: 'Tops',    stock: 15, tag: 'Best Seller',           image: '/assets/crop_top_black.png', colors: ['Midnight Black','Terinn Mauve','Slate Blue','Olive Green'] },
-          { id: 'long-sleeve',  name: 'Terinn Long Sleeve',    price: 22000, category: 'Tops',    stock: 10, tag: 'Best Seller',           image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'biker-shorts', name: 'Terinn Biker Shorts',   price: 16000, category: 'Bottoms', stock: 20, tag: 'Best Seller',           image: '/assets/terinn_gallery_1.png', colors: ['Slate Blue','Terinn Mauve','Midnight Black','Olive Green'] },
-          { id: 'shorts',       name: 'Terinn Shorts',         price: 15000, category: 'Bottoms', stock: 12, tag: 'Best Seller',           image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'gym-gloves',   name: 'Terinn Gym Gloves',    price: 12000, category: 'Accessories', stock: 15, tag: 'Best Seller',       image: '/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
-          { id: 'sanitizer',    name: 'Terinn Sanitizer',     price: 3500,  category: 'Accessories', stock: 50, tag: '',       image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
-          { id: 'water-bottle', name: 'Terinn Water Bottle',  price: 8500,  category: 'Accessories', stock: 25, tag: 'Best Seller',       image: '/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
-          { id: 'bands',        name: 'Terinn Gym Bands',     price: 6000,  category: 'Accessories', stock: 30, tag: 'Best Seller',       image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
+          { id: 'sports-bra', name: 'Terinn Sports Bra', price: 18000, category: 'Tops', stock: 24, tag: 'Best Seller', image: '/assets/sports_bra_mauve.png', colors: ['Terinn Mauve', 'Midnight Black', 'Slate Blue', 'Olive Green'] },
+          { id: 'leggings', name: 'Terinn Leggings', price: 20000, category: 'Bottoms', stock: 18, tag: 'Best Seller', image: '/assets/leggings_mauve.png', colors: ['Terinn Mauve', 'Midnight Black', 'Slate Blue', 'Olive Green'] },
+          { id: 'crop-top', name: 'Terinn Crop Top', price: 20000, category: 'Tops', stock: 15, tag: 'Best Seller', image: '/assets/crop_top_black.png', colors: ['Midnight Black', 'Terinn Mauve', 'Slate Blue', 'Olive Green'] },
+          { id: 'long-sleeve', name: 'Terinn Long Sleeve', price: 22000, category: 'Tops', stock: 10, tag: 'Best Seller', image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve', 'Midnight Black', 'Slate Blue', 'Olive Green'] },
+          { id: 'biker-shorts', name: 'Terinn Biker Shorts', price: 16000, category: 'Bottoms', stock: 20, tag: 'Best Seller', image: '/assets/terinn_gallery_1.png', colors: ['Slate Blue', 'Terinn Mauve', 'Midnight Black', 'Olive Green'] },
+          { id: 'shorts', name: 'Terinn Shorts', price: 15000, category: 'Bottoms', stock: 12, tag: 'Best Seller', image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve', 'Midnight Black', 'Slate Blue', 'Olive Green'] },
+          { id: 'gym-gloves', name: 'Terinn Gym Gloves', price: 12000, category: 'Accessories', stock: 15, tag: 'Best Seller', image: '/assets/gym_gloves.png', colors: ['Midnight Black', 'Slate Blue'] },
+          { id: 'sanitizer', name: 'Terinn Sanitizer', price: 3500, category: 'Accessories', stock: 50, tag: '', image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
+          { id: 'water-bottle', name: 'Terinn Water Bottle', price: 8500, category: 'Accessories', stock: 25, tag: 'Best Seller', image: '/assets/water_bottle.png', colors: ['Terinn Mauve', 'Midnight Black'] },
+          { id: 'bands', name: 'Terinn Gym Bands', price: 6000, category: 'Accessories', stock: 30, tag: 'Best Seller', image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
         ];
         localStorage.setItem('terinn_admin_products', JSON.stringify(defaultList));
         window.location.reload();
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Scroll to top on view changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [view]);
+
+  // VIP Newsletter Modal State
+  const [showVipModal, setShowVipModal] = useState(false);
+  const [vipEmail, setVipEmail] = useState('');
+  const [vipPhone, setVipPhone] = useState('');
+  const [vipSuccessMsg, setVipSuccessMsg] = useState('');
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem('terinn_vip_newsletter_dismissed');
+    if (!dismissed) {
+      const timer = setTimeout(() => {
+        setShowVipModal(true);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleVipSubmit = (e) => {
+    e.preventDefault();
+    if (!vipEmail.trim()) return;
+
+    try {
+      const stored = localStorage.getItem('terinn_admin_subscribers');
+      const subscribers = stored ? JSON.parse(stored) : [];
+      const newSub = {
+        id: 'sub-' + Date.now(),
+        email: vipEmail.trim(),
+        phone: vipPhone.trim() || 'N/A',
+        date: new Date().toISOString()
+      };
+      subscribers.push(newSub);
+      localStorage.setItem('terinn_admin_subscribers', JSON.stringify(subscribers));
+    } catch (err) { }
+
+    localStorage.setItem('terinn_vip_newsletter_dismissed', 'true');
+    setVipSuccessMsg('🎉 Welcome to the TERINN FIT Inner Circle! Check your email for your 15% discount code.');
+    setTimeout(() => {
+      setShowVipModal(false);
+      setVipSuccessMsg('');
+    }, 3200);
+  };
 
   // Cart operations
   const addToCart = (item) => {
@@ -122,7 +209,7 @@ function App() {
     try {
       const saved = localStorage.getItem('terinn_admin_settings');
       if (saved) currentSettings = JSON.parse(saved);
-    } catch (err) {}
+    } catch (err) { }
 
     let subtotal = 0;
     let setDiscountsCount = 0;
@@ -143,7 +230,7 @@ function App() {
     const automaticSets = Math.min(topsCount, bottomsCount);
     setDiscountsCount += automaticSets;
     const totalDiscount = setDiscountsCount * 6000;
-    
+
     const finalSubtotal = subtotal - totalDiscount;
     const sitewideDiscount = (currentSettings.discount || 0) / 100;
     const finalTotal = finalSubtotal * (1 - sitewideDiscount);
@@ -168,8 +255,8 @@ function App() {
         if (savedSettings.flwPublicKey) {
           flwKey = savedSettings.flwPublicKey;
         }
-      } catch (err) {}
-      
+      } catch (err) { }
+
       flwKey = (flwKey || '').trim();
 
       if (!window.FlutterwaveCheckout) {
@@ -214,7 +301,7 @@ function App() {
               const existingOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
               existingOrders.unshift(newOrder);
               localStorage.setItem('terinn_admin_orders', JSON.stringify(existingOrders));
-            } catch (err) {}
+            } catch (err) { }
 
             clearCart();
             setCheckoutModalOpen(false);
@@ -251,7 +338,7 @@ function App() {
         const existingOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
         existingOrders.unshift(newOrder);
         localStorage.setItem('terinn_admin_orders', JSON.stringify(existingOrders));
-      } catch (err) {}
+      } catch (err) { }
 
       const text = `Hi Terinn Fit, I'd like to place an order!
 Order ID: ${orderId}
@@ -283,17 +370,36 @@ Please send payment details to confirm.`;
 
   return (
     <div className="App">
-      <Navbar 
-        view={view} 
-        setView={setView} 
+      {/* Luxury Brand Preloader Overlay */}
+      {loading && (
+        <div className={`terinn-preloader ${progress >= 100 ? 'fade-out' : ''}`}>
+          <div className="preloader-content">
+            <div className="preloader-logo-ring">
+              <img src={logoImg} alt="Terinn Fit Logo" className="preloader-logo-img" />
+              <div className="orbiting-spinner"></div>
+            </div>
+            <h1 className="preloader-brand-title">TERINN FIT</h1>
+            <p className="preloader-tagline">SNATCHED & POWERFUL</p>
+            <div className="preloader-progress-track">
+              <div className="preloader-progress-bar" style={{ width: `${progress}%` }}></div>
+            </div>
+            <span className="preloader-percent-text">{progress}%</span>
+          </div>
+        </div>
+      )}
+
+      <Navbar
+        view={view}
+        setView={setView}
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         setIsCartOpen={setIsCartOpen}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
+        onOpenTrackModal={() => setTrackModalOpen(true)}
       />
 
       {view === 'home' ? (
-        <Home setView={setView} addToCart={addToCart} />
+        <Home setView={setView} addToCart={addToCart} onOpenTrackModal={() => setTrackModalOpen(true)} />
       ) : (
         <Store addToCart={addToCart} />
       )}
@@ -323,7 +429,7 @@ Please send payment details to confirm.`;
             maxHeight: '90vh',
             overflowY: 'auto'
           }}>
-            <button 
+            <button
               onClick={() => setCheckoutModalOpen(false)}
               style={{
                 position: 'absolute',
@@ -348,55 +454,55 @@ Please send payment details to confirm.`;
             <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#f3d4d3', fontWeight: 600 }}>Secure Checkout</span>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, margin: '4px 0 6px', color: '#ffffff' }}>Customer Details</h3>
             <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.8)', marginBottom: 20 }}>Complete your details to pay securely online via Flutterwave or order on WhatsApp.</p>
-            
+
             <form onSubmit={submitCheckout} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name *</label>
-                <input 
-                  type="text" 
-                  className="calc-select" 
-                  value={custName} 
-                  onChange={e => setCustName(e.target.value)} 
-                  placeholder="e.g. Jane Doe" 
-                  required 
+                <input
+                  type="text"
+                  className="calc-select"
+                  value={custName}
+                  onChange={e => setCustName(e.target.value)}
+                  placeholder="e.g. Jane Doe"
+                  required
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address *</label>
-                <input 
-                  type="email" 
-                  className="calc-select" 
-                  value={custEmail} 
-                  onChange={e => setCustEmail(e.target.value)} 
-                  placeholder="e.g. jane@example.com" 
-                  required 
+                <input
+                  type="email"
+                  className="calc-select"
+                  value={custEmail}
+                  onChange={e => setCustEmail(e.target.value)}
+                  placeholder="e.g. jane@example.com"
+                  required
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone / WhatsApp Number *</label>
-                <input 
-                  type="tel" 
-                  className="calc-select" 
-                  value={custPhone} 
-                  onChange={e => setCustPhone(e.target.value)} 
-                  placeholder="e.g. 08012345678" 
-                  required 
+                <input
+                  type="tel"
+                  className="calc-select"
+                  value={custPhone}
+                  onChange={e => setCustPhone(e.target.value)}
+                  placeholder="e.g. 08012345678"
+                  required
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Delivery Address *</label>
-                <textarea 
-                  className="calc-select" 
-                  value={custAddress} 
-                  onChange={e => setCustAddress(e.target.value)} 
-                  placeholder="Street Address, City, State" 
-                  required 
+                <textarea
+                  className="calc-select"
+                  value={custAddress}
+                  onChange={e => setCustAddress(e.target.value)}
+                  placeholder="Street Address, City, State"
+                  required
                   rows="2"
                   style={{ width: '100%', resize: 'none', height: 'auto' }}
                 />
@@ -452,17 +558,17 @@ Please send payment details to confirm.`;
                 </div>
               </div>
 
-              <button 
-                type="submit" 
-                className="btn-calc-submit" 
-                style={{ 
+              <button
+                type="submit"
+                className="btn-calc-submit"
+                style={{
                   marginTop: 10,
                   background: paymentChoice === 'flutterwave' ? '#db2777' : '#25d366',
                   boxShadow: paymentChoice === 'flutterwave' ? '0 8px 22px rgba(219, 39, 119, 0.4)' : '0 8px 22px rgba(37, 211, 102, 0.4)'
                 }}
               >
-                {paymentChoice === 'flutterwave' 
-                  ? `Pay ₦${totals.finalTotal.toLocaleString()} via Flutterwave` 
+                {paymentChoice === 'flutterwave'
+                  ? `Pay ₦${totals.finalTotal.toLocaleString()} via Flutterwave`
                   : `Open WhatsApp Order →`
                 }
               </button>
@@ -588,7 +694,7 @@ Please send payment details to confirm.`;
         </div>
       )}
 
-      <CartDrawer 
+      <CartDrawer
         isOpen={isCartOpen}
         setIsOpen={setIsCartOpen}
         cart={cart}
@@ -617,7 +723,7 @@ Please send payment details to confirm.`;
             <ul>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setView('home'); }}>Home</a></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setView('store'); }}>Store</a></li>
-              <li><a href="#lookbook">Lookbook</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); setTrackModalOpen(true); }}>Track Item</a></li>
               <li><a href="#size-guide">Size Guide</a></li>
             </ul>
           </div>
@@ -629,9 +735,167 @@ Please send payment details to confirm.`;
         </div>
         <div className="footer-bottom-row">
           <p>&copy; 2026 Terinn Fit Activewear. Designed with strength and elegance. Lagos, Nigeria.</p>
-          <a href="/admin.html" target="_blank" style={{color:'rgba(255,255,255,0.2)',fontSize:'11px',letterSpacing:'1px',marginTop:4,display:'inline-block'}} title="Admin Access">admin ⚙</a>
+          <a href="/admin.html" target="_blank" style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', letterSpacing: '1px', marginTop: 4, display: 'inline-block' }} title="Admin Access">admin ⚙</a>
         </div>
       </footer>
+
+      {/* Track Item / Order Modal */}
+      {trackModalOpen && (
+        <div className="quick-view-modal-overlay" onClick={() => { setTrackModalOpen(false); setTrackResult(null); }}>
+          <div className="quick-view-modal-card track-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="close-quick-view" onClick={() => { setTrackModalOpen(false); setTrackResult(null); }}>&times;</button>
+
+            <div className="track-header-badge">
+              <span className="live-dot"></span>
+              <span>LIVE PACKAGE STATUS</span>
+            </div>
+
+            <h2 className="track-modal-title">TRACK YOUR ORDER</h2>
+            <p className="track-modal-subtitle">
+              Enter your Order Reference Number (e.g. <strong>TF-104920</strong>), Email address, or WhatsApp phone number below.
+            </p>
+
+            <form onSubmit={handleTrackSubmit} className="track-input-form">
+              <input
+                type="text"
+                className="track-input-field"
+                placeholder="Order Reference ID *"
+                required
+                value={trackQuery}
+                onChange={(e) => setTrackQuery(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="btn btn-calc-submit track-submit-btn"
+              >
+                TRACK PACKAGE ➔
+              </button>
+            </form>
+
+            {trackResult && (
+              trackResult.found ? (
+                <div className="track-result-box success">
+                  <div className="track-order-top-row">
+                    <span className="track-order-id">ORDER #{trackResult.order.id}</span>
+                    <span className="track-status-pill">
+                      {trackResult.order.status || 'PROCESSING'}
+                    </span>
+                  </div>
+
+                  {/* Step-by-step Visual Fulfillment Pipeline */}
+                  <div className="tracking-pipeline-stepper">
+                    <div className={`step-node ${['processing', 'dispatched', 'delivered', 'completed', 'paid', 'pending'].includes((trackResult.order.status || '').toLowerCase()) ? 'active' : ''}`}>
+                      <div className="step-circle">1</div>
+                      <span className="step-label">Processing</span>
+                    </div>
+                    <div className={`step-line ${['dispatched', 'delivered', 'completed'].includes((trackResult.order.status || '').toLowerCase()) ? 'active' : ''}`}></div>
+                    <div className={`step-node ${['dispatched', 'delivered', 'completed'].includes((trackResult.order.status || '').toLowerCase()) ? 'active' : ''}`}>
+                      <div className="step-circle">2</div>
+                      <span className="step-label">Dispatched</span>
+                    </div>
+                    <div className={`step-line ${['delivered', 'completed'].includes((trackResult.order.status || '').toLowerCase()) ? 'active' : ''}`}></div>
+                    <div className={`step-node ${['delivered', 'completed'].includes((trackResult.order.status || '').toLowerCase()) ? 'active' : ''}`}>
+                      <div className="step-circle">3</div>
+                      <span className="step-label">Delivered</span>
+                    </div>
+                  </div>
+
+                  <div className="track-details-grid">
+                    <div>
+                      <span className="track-detail-label">Customer Name</span>
+                      <strong className="track-detail-val">{trackResult.order.customerName}</strong>
+                    </div>
+                    <div>
+                      <span className="track-detail-label">Order Total</span>
+                      <strong className="track-detail-val">₦{Number(trackResult.order.total).toLocaleString()}</strong>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 10 }}>
+                    <span className="track-detail-label">Delivery Address</span>
+                    <p className="track-detail-val" style={{ margin: '2px 0 0', fontWeight: 500 }}>{trackResult.order.address}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="track-result-box not-found">
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>📦</div>
+                  <h4 style={{ margin: '0 0 6px', fontSize: 14, fontWeight: 700, color: '#f87171' }}>No record found for "{trackResult.query}"</h4>
+                  <p style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)', margin: '0 0 14px', lineHeight: 1.4 }}>
+                    Please verify your Order ID or connect with our Terinn Fit Live Support team on WhatsApp.
+                  </p>
+                  <a
+                    href={`https://wa.me/2349053602119?text=Hello%20Terinn%20Fit,%20I%20would%20like%20to%20track%20my%20order:%20${encodeURIComponent(trackResult.query)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="track-whatsapp-btn"
+                  >
+                    💬 Ask Live Support on WhatsApp
+                  </a>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Luxury VIP Newsletter & Pre-Order Popup Modal */}
+      {showVipModal && (
+        <div className="quick-view-modal-overlay" onClick={() => { setShowVipModal(false); localStorage.setItem('terinn_vip_newsletter_dismissed', 'true'); }}>
+          <div className="quick-view-modal-card" style={{ maxWidth: 480, padding: 32, textAlign: 'center', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button className="close-quick-view" onClick={() => { setShowVipModal(false); localStorage.setItem('terinn_vip_newsletter_dismissed', 'true'); }}>&times;</button>
+            <span style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#db2777', fontWeight: 800, display: 'block', marginBottom: 6 }}>
+              EXCLUSIVE INNER CIRCLE
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 800, color: 'var(--color-brand-wine)', marginBottom: 8 }}>
+              JOIN THE TERINN FIT CLUB
+            </h2>
+            <p style={{ fontSize: 13.5, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
+              Subscribe to get instant alerts on secret activewear drops, pre-orders, and <strong>15% OFF</strong> your first snatched fit.
+            </p>
+
+            {vipSuccessMsg ? (
+              <div style={{ background: '#ecfdf5', color: '#047857', padding: '16px', borderRadius: '16px', fontSize: 13.5, fontWeight: 600, border: '1px solid #a7f3d0' }}>
+                {vipSuccessMsg}
+              </div>
+            ) : (
+              <form onSubmit={handleVipSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <input
+                    type="email"
+                    placeholder="Enter your email address *"
+                    required
+                    value={vipEmail}
+                    onChange={(e) => setVipEmail(e.target.value)}
+                    style={{ width: '100%', padding: '13px 18px', borderRadius: '30px', border: '1.5px solid var(--color-border)', fontSize: '14px', outline: 'none', background: '#fdfbf7' }}
+                  />
+                </div>
+                <div>
+                  <input
+                    type="tel"
+                    placeholder="WhatsApp / Phone number (Optional)"
+                    value={vipPhone}
+                    onChange={(e) => setVipPhone(e.target.value)}
+                    style={{ width: '100%', padding: '13px 18px', borderRadius: '30px', border: '1.5px solid var(--color-border)', fontSize: '14px', outline: 'none', background: '#fdfbf7' }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-calc-submit"
+                  style={{ width: '100%', padding: '14px', borderRadius: '30px', fontSize: '14px', marginTop: 4 }}
+                >
+                  GET MY 15% DISCOUNT &rarr;
+                </button>
+              </form>
+            )}
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', color: '#999', fontSize: 12, marginTop: 14, cursor: 'pointer', textDecoration: 'underline' }}
+              onClick={() => { setShowVipModal(false); localStorage.setItem('terinn_vip_newsletter_dismissed', 'true'); }}
+            >
+              No thanks, I'll pay full price
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
