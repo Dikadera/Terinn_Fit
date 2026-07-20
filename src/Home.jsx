@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import heroBgImg from './assets/terinn_hero_bg.png';
 import gallery1Img from './assets/terinn_gallery_1.png';
+import modelRedStanding from './assets/model_red_standing.jpg';
+import modelBurgundyStanding from './assets/model_burgundy_standing.jpg';
+import modelBurgundyCrouch from './assets/model_burgundy_crouch.jpg';
 
 // Product Images
 import sportsBraImg from './assets/sports_bra_mauve.png';
@@ -15,6 +18,37 @@ import gymGlovesImg from './assets/gym_gloves.png';
 import sanitizerImg from './assets/hand_sanitizer.png';
 import waterBottleImg from './assets/water_bottle.png';
 import gymBandsImg from './assets/resistance_bands.png';
+
+// Real Model Showcase Slides (Default Fallback)
+const DEFAULT_MODEL_SHOWCASE = [
+  {
+    id: 'slide-1',
+    title: 'Crimson Red Power Bodysuit',
+    tag: 'Signature Series • Sculpted Back',
+    desc: 'High-compression, cross-back design built for maximum mobility, strength, and squat-proof support.',
+    price: '₦22,000',
+    colorName: 'Crimson Red',
+    image: modelRedStanding,
+  },
+  {
+    id: 'slide-2',
+    title: 'Deep Wine Active Bodysuit',
+    tag: 'Collection 02 • Snatched Core',
+    desc: 'Deep burgundy compression bodysuit crafted to hold you in seamlessly while lifting and training.',
+    price: '₦24,000',
+    colorName: 'Deep Wine',
+    image: modelBurgundyStanding,
+  },
+  {
+    id: 'slide-3',
+    title: 'Deep Wine Flex Bodysuit',
+    tag: 'Flexibility & Strength • 4-Way Stretch',
+    desc: 'Ergonomic, low-back compression unitard engineered for deep squats, mobility, and breathability.',
+    price: '₦24,000',
+    colorName: 'Deep Wine',
+    image: modelBurgundyCrouch,
+  }
+];
 
 // ─── Snatch Carousel Data ─────────────────────────────────────────────────
 const snatchProducts = [
@@ -160,58 +194,6 @@ function Home({ setView, addToCart }) {
     }
   });
 
-  // Hero Carousel State & Multi-Slide Data
-  const heroSlides = [
-    {
-      id: 0,
-      tag: "Collection 01 • Mauve Compression Set",
-      title: "Your New Everyday Power Fit.",
-      desc: "Built for the girls who lift. Snatched, strong, and unapologetically you.",
-      btnPrimaryText: "EXPLORE CUSTOMIZER",
-      btnPrimaryAction: () => setView('store'),
-      btnSecondaryText: "VIEW LOOKBOOK",
-      btnSecondaryHref: "#lookbook",
-      bgImg: heroBgImg
-    },
-    {
-      id: 1,
-      tag: "Collection 02 • Slate Blue Core Set",
-      title: "Sculpted Active Compression.",
-      desc: "Maximum breathability & support designed for heavy leg days and training.",
-      btnPrimaryText: "SHOP SLATE BLUE",
-      btnPrimaryAction: () => setView('store'),
-      btnSecondaryText: "FIND YOUR FIT",
-      btnSecondaryHref: "#size-guide",
-      bgImg: gallery1Img
-    },
-    {
-      id: 2,
-      tag: "Bundle Deal • Save ₦6,000 Instantly",
-      title: "Mix & Match Custom Sets.",
-      desc: "Pair any Sports Bra or Crop Top with Leggings or Shorts & get ₦6k off.",
-      btnPrimaryText: "BUILD YOUR SET",
-      btnPrimaryAction: () => setView('store'),
-      btnSecondaryText: "EXPLORE STORE",
-      btnSecondaryAction: () => setView('store'),
-      bgImg: cropTopImg
-    }
-  ];
-
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [heroSlides.length]);
-
-  const handleSlideChange = (index) => {
-    if (index < 0) index = heroSlides.length - 1;
-    if (index >= heroSlides.length) index = 0;
-    setCurrentSlide(index);
-  };
-
   // Size Calculator State
   const [calcTab, setCalcTab] = useState('standard');
   const [sizeSystem, setSizeSystem] = useState('UK');
@@ -261,6 +243,40 @@ function Home({ setView, addToCart }) {
     setResultDetails(`${details} Perfect snatched fit designed for training.`);
   };
 
+  const [modelShowcaseSlides] = useState(() => {
+    try {
+      const stored = localStorage.getItem('terinn_admin_showcase');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const assetMap = {
+            '/assets/model_red_standing.jpg': modelRedStanding,
+            '/assets/model_burgundy_standing.jpg': modelBurgundyStanding,
+            '/assets/model_burgundy_crouch.jpg': modelBurgundyCrouch,
+            '/src/assets/model_red_standing.jpg': modelRedStanding,
+            '/src/assets/model_burgundy_standing.jpg': modelBurgundyStanding,
+            '/src/assets/model_burgundy_crouch.jpg': modelBurgundyCrouch,
+          };
+          return parsed.map(s => ({
+            ...s,
+            image: assetMap[s.image] || s.image || modelRedStanding
+          }));
+        }
+      }
+    } catch (e) {}
+    return DEFAULT_MODEL_SHOWCASE;
+  });
+
+  const [modelSlideIdx, setModelSlideIdx] = useState(0);
+  const [viewModalImage, setViewModalImage] = useState(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setModelSlideIdx(prev => (prev + 1) % modelShowcaseSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [modelShowcaseSlides.length]);
+
   // Policies Tab State
   const [activePolicy, setActivePolicy] = useState('orders');
 
@@ -283,8 +299,6 @@ function Home({ setView, addToCart }) {
     }, 1000);
   };
 
-  const activeSlide = heroSlides[currentSlide];
-
   return (
     <>
       <section className="hero-section-new">
@@ -295,52 +309,33 @@ function Home({ setView, addToCart }) {
 
             <h2 className="hero-card-logo-new">TERINN FIT</h2>
 
-            <div key={activeSlide.id} className="hero-slide-content">
+            <div className="hero-slide-content">
               <h1 className="hero-card-title-new">
-                {activeSlide.title}
+                Your New Everyday Power Fit.
               </h1>
 
               <p className="hero-card-desc-new">
-                {activeSlide.desc}
+                Built for the girls who lift. Snatched, strong, and unapologetically you.
               </p>
 
               <div className="hero-card-buttons-new">
-                <button onClick={activeSlide.btnPrimaryAction} className="hero-card-btn primary">
-                  {activeSlide.btnPrimaryText}
+                <button onClick={() => setView('store')} className="hero-card-btn primary">
+                  EXPLORE CUSTOMIZER
                 </button>
-                {activeSlide.btnSecondaryHref ? (
-                  <a href={activeSlide.btnSecondaryHref} className="hero-card-btn secondary">
-                    {activeSlide.btnSecondaryText}
-                  </a>
-                ) : (
-                  <button onClick={activeSlide.btnSecondaryAction} className="hero-card-btn secondary">
-                    {activeSlide.btnSecondaryText}
-                  </button>
-                )}
+                <a href="#lookbook" className="hero-card-btn secondary">
+                  VIEW LOOKBOOK
+                </a>
               </div>
-            </div>
-
-            <div className="hero-card-controls-new">
-              <button className="arrow-btn-new" onClick={() => handleSlideChange(currentSlide - 1)}>←</button>
-              <div className="dots-container-new">
-                {heroSlides.map((_, idx) => (
-                  <div key={idx} className={`dot-new ${currentSlide === idx ? 'active' : ''}`} onClick={() => handleSlideChange(idx)}></div>
-                ))}
-              </div>
-              <button className="arrow-btn-new" onClick={() => handleSlideChange(currentSlide + 1)}>→</button>
             </div>
 
           </div>
 
-          {/* Right: Dynamic Model photo overlay */}
-          <img key={activeSlide.id} src={activeSlide.bgImg} alt="Terinn Fit Model" className="hero-model-img hero-model-fade" />
+          {/* Right: Model photo overlay */}
+          <img src={heroBgImg} alt="Terinn Fit Model" className="hero-model-img" />
 
         </div>
-        <div className="hero-bottom-tag-new">{activeSlide.tag}</div>
+        <div className="hero-bottom-tag-new">Collection 01 • Mauve Compression Set</div>
       </section>
-
-
-
 
       {/* ─── Bestsellers Section — 9 Products Grid ─── */}
       <section className="bestsellers-section">
@@ -348,78 +343,48 @@ function Home({ setView, addToCart }) {
           <div className="bestsellers-header">
             <span className="pre-title">Trending Now</span>
             <h2 className="bestsellers-title">Our Best Sellers</h2>
-            <p className="bestsellers-subtitle">The absolute favorites, snatched and compression-optimized for peak performance.</p>
+            <p className="bestsellers-sub">High performance compression activewear loved by our fitness community.</p>
           </div>
+
           <div className="bestsellers-grid">
-            {bestsellers.map((p) => (
-              <div key={p.id} className="bestseller-card" onClick={() => setView('store')}>
+            {bestsellers.map((prod) => (
+              <div key={prod.id} className="bestseller-card" onClick={() => setView('store')}>
                 <div className="bestseller-img-wrap">
-                  <img 
-                    src={p.image} 
-                    alt={p.name} 
-                    className="bestseller-img" 
-                    onError={(e) => { e.target.src = '/src/assets/logo.png'; }}
-                  />
-                  {p.tag && <span className="bestseller-badge">{p.tag}</span>}
+                  <img src={prod.image} alt={prod.name} onError={(e) => { e.target.src = '/src/assets/logo.png'; }} />
+                  {prod.tag && <span className="bestseller-tag">{prod.tag}</span>}
                 </div>
                 <div className="bestseller-info">
-                  <span className="bestseller-category">{p.category}</span>
-                  <h3 className="bestseller-name">{p.name}</h3>
-                  <span className="bestseller-price">₦{p.price.toLocaleString()}</span>
-                  <button className="btn-bestseller-explore" onClick={(e) => handleAddBestseller(p, e)}>Add to Bag</button>
+                  <span className="bestseller-cat">{prod.category || 'Activewear'}</span>
+                  <h3 className="bestseller-name">{prod.name}</h3>
+                  <div className="bestseller-bottom">
+                    <span className="bestseller-price">₦{prod.price.toLocaleString()}</span>
+                    <button 
+                      className="bestseller-add-btn" 
+                      onClick={(e) => handleAddBestseller(prod, e)}
+                    >
+                      Add to Bag
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="bestsellers-more-wrap">
-            <button onClick={() => setView('store')} className="btn-bestsellers-more">
-              Show More Products &rarr;
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* Lookbook Section */}
-      <section id="lookbook" class="editorial-lookbook">
-        <div class="editorial-section-title-wrap">
-            <span class="pre-title">Selected Collections</span>
-            <h2 class="editorial-section-title">Designed to Snatch</h2>
-        </div>
-        <div class="lookbook-grid">
-            <div class="lookbook-item large-card">
-                <div class="card-img-wrap">
-                    <img src={gallery1Img} alt="Terinn Fit Slate Blue Collection" />
-                </div>
-                <div class="card-info">
-                    <span class="card-category">Training / Yoga</span>
-                    <h3>The Slate Blue Core Set</h3>
-                    <p>Breathable, compressive nylon-spandex blend that holds you in at the right places.</p>
-                </div>
-            </div>
-            <div class="lookbook-item text-card">
-                <div class="text-card-content">
-                    <span class="quote-icon">“</span>
-                    <blockquote>
-                        We believe activewear should be comfortable, stylish, and affordable. We also give our customers the freedom to shop individual pieces or complete sets based on their needs and budget.
-                    </blockquote>
-                    <cite>— Terinn Fit Ethos</cite>
-                </div>
-            </div>
-        </div>
-      </section>
-
-      {/* Sizing Calculator Section */}
+      {/* ─── Size Calculator & Sizing Section ─── */}
       <section id="size-guide" className="editorial-size-section">
         <div className="editorial-section-title-wrap">
-          <span className="pre-title">Sizing Guide</span>
+          <span className="pre-title">Precision Fit</span>
           <h2 className="editorial-section-title">Find Your Perfect Fit</h2>
         </div>
 
         <div className="size-calculator-grid">
+          {/* Left: Size Calculator Form */}
           <div className="size-calc-card">
-            <h3>Fit Recommendation Engine</h3>
-            <p>Input your details or select your standard size system to find the optimal size for active compression.</p>
-            
+            <h3>Interactive Size Calculator</h3>
+            <p style={{ marginBottom: 20 }}>Select your usual clothing size or enter bust and waist measurements for a tailored fit recommendation.</p>
+
             <div className="calc-tabs">
               <button 
                 className={`calc-tab ${calcTab === 'standard' ? 'active' : ''}`}
@@ -436,17 +401,17 @@ function Home({ setView, addToCart }) {
             </div>
 
             {calcTab === 'standard' ? (
-              <div className="calc-group">
-                <label>Select Size System</label>
-                <div className="size-system-selector" style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+              <div className="calc-standard-group" style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase' }}>Size System</label>
+                <div className="size-system-pills" style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                   {['UK', 'US', 'EUR'].map((sys) => (
                     <button
                       key={sys}
                       type="button"
-                      className={`btn-secondary ${sizeSystem === sys ? 'active-sys' : ''}`}
                       style={{
                         padding: '6px 14px',
                         fontSize: 12,
+                        fontWeight: 600,
                         borderRadius: 20,
                         border: '1px solid var(--color-border)',
                         background: sizeSystem === sys ? 'var(--color-brand-wine)' : 'transparent',
@@ -459,43 +424,10 @@ function Home({ setView, addToCart }) {
                     </button>
                   ))}
                 </div>
-
-                <select 
-                  className="calc-select" 
-                  value={standardVal}
-                  onChange={(e) => setStandardVal(e.target.value)}
-                >
-                  {sizeSystem === 'UK' && (
-                    <>
-                      <option value="6">UK 6 (Extra Small)</option>
-                      <option value="8">UK 8 (Small)</option>
-                      <option value="10">UK 10 (Small / Medium)</option>
-                      <option value="12">UK 12 (Medium)</option>
-                      <option value="14">UK 14 (Large)</option>
-                      <option value="16">UK 16 (Extra Large)</option>
-                      <option value="18">UK 18 (XXL)</option>
-                    </>
-                  )}
-                  {sizeSystem === 'US' && (
-                    <>
-                      <option value="2">US 2 (Extra Small)</option>
-                      <option value="4">US 4 (Small)</option>
-                      <option value="6">US 6 (Small / Medium)</option>
-                      <option value="8">US 8 (Medium)</option>
-                      <option value="10">US 10 (Large)</option>
-                      <option value="12">US 12 (Extra Large)</option>
-                    </>
-                  )}
-                  {sizeSystem === 'EUR' && (
-                    <>
-                      <option value="34">EUR 34 (XS)</option>
-                      <option value="36">EUR 36 (S)</option>
-                      <option value="38">EUR 38 (M)</option>
-                      <option value="40">EUR 40 (M/L)</option>
-                      <option value="42">EUR 42 (L)</option>
-                      <option value="44">EUR 44 (XL)</option>
-                    </>
-                  )}
+                <select className="calc-select" value={standardVal} onChange={(e) => setStandardVal(e.target.value)}>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="14">14</option>
                 </select>
               </div>
             ) : (
@@ -523,57 +455,55 @@ function Home({ setView, addToCart }) {
               </div>
             )}
 
-            <button 
-              className="btn-calc-submit"
-              onClick={calculateSize}
-              style={{ width: '100%', marginTop: 8 }}
-            >
-              Calculate Size
-            </button>
+            <button className="btn btn-calc-submit" onClick={calculateSize}>Calculate My Fit</button>
 
             {recommendedSize && (
-              <div className="calc-result" style={{ display: 'block' }}>
-                <span className="result-label">Recommended Size:</span>
+              <div className="calc-result">
+                <span className="result-label">Recommended Terinn Size</span>
                 <span className="result-value">{recommendedSize}</span>
                 <p className="result-details">{resultDetails}</p>
               </div>
             )}
           </div>
 
+          {/* Right: Sizing Chart */}
           <div className="size-table-card">
+            <h3>Size Conversion Guide</h3>
+            <p style={{ marginBottom: 20 }}>Use our general size conversion chart to find your perfect Terinn activewear size.</p>
+
             <table className="size-table">
               <thead>
                 <tr>
-                  <th>Size</th>
-                  <th>UK</th>
-                  <th>US</th>
-                  <th>EUR</th>
+                  <th>Terinn Size</th>
+                  <th>UK Size</th>
+                  <th>US Size</th>
+                  <th>Bust (inches)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className={recommendedSize === 'S' ? 'highlight-row' : ''}>
                   <td><strong>S</strong></td>
-                  <td>8 - 10</td>
-                  <td>6</td>
-                  <td>34 - 36</td>
+                  <td>6 - 8</td>
+                  <td>2 - 4</td>
+                  <td>32 - 34</td>
                 </tr>
                 <tr className={recommendedSize === 'M' || (!recommendedSize) ? 'highlight-row' : ''}>
                   <td><strong>M</strong></td>
-                  <td>12</td>
-                  <td>8 - 10</td>
-                  <td>38 - 40</td>
+                  <td>10 - 12</td>
+                  <td>6 - 8</td>
+                  <td>36 - 38</td>
                 </tr>
                 <tr className={recommendedSize === 'L' ? 'highlight-row' : ''}>
                   <td><strong>L</strong></td>
                   <td>14 - 16</td>
-                  <td>12 - 14</td>
-                  <td>42 - 44</td>
+                  <td>10 - 12</td>
+                  <td>40 - 42</td>
                 </tr>
                 <tr className={recommendedSize === 'XL' ? 'highlight-row' : ''}>
                   <td><strong>XL</strong></td>
                   <td>18</td>
-                  <td>16</td>
-                  <td>46</td>
+                  <td>14 - 16</td>
+                  <td>44 - 46</td>
                 </tr>
               </tbody>
             </table>
@@ -581,66 +511,97 @@ function Home({ setView, addToCart }) {
         </div>
       </section>
 
-      {/* ─── Designed to Snatch — Dual Auto-Scroll Carousels ─── */}
-      <section className="snatch-section">
-        <div className="snatch-header">
-          <span className="pre-title">Selected Pieces</span>
-          <h2 className="snatch-title">Designed to Snatch</h2>
-        </div>
-
-        {/* Row 1 — scrolls right */}
-        <div className="snatch-track-wrapper">
-          <div className="snatch-track snatch-track-right">
-            {[...carouselProducts, ...carouselProducts].map((p, i) => (
-              <div key={`r-${i}`} className="snatch-card" onClick={() => setView('store')}>
-                <div className="snatch-card-img-wrap">
-                  <img 
-                    src={p.image} 
-                    alt={p.name} 
-                    className="snatch-card-img" 
-                    onError={(e) => { e.target.src = '/src/assets/logo.png'; }}
-                  />
-                </div>
-                <div className="snatch-card-tag">{p.tag || p.category}</div>
-                <div className="snatch-card-body">
-                  <div className="snatch-card-colors">
-                    {(p.colors || []).slice(0, 4).map(c => (
-                      <span key={c} className="snatch-dot" style={{ backgroundColor: colorHex[c] || '#8a5e66' }} title={c} />
-                    ))}
-                  </div>
-                  <div className="snatch-card-name">{p.name}</div>
-                  <div className="snatch-card-price">₦{p.price.toLocaleString()}</div>
-                </div>
-              </div>
-            ))}
+      {/* ─── Real Model Showcase Carousel Section ─── */}
+      <section className="model-carousel-section">
+        <div className="model-carousel-container">
+          <div className="model-carousel-header">
+            <span className="pre-title">For The Girls Who Lift</span>
+            <h2 className="model-carousel-title">Designed to Snatch</h2>
+            <p className="model-carousel-sub">Real activewear performance worn by authentic fitness models.</p>
           </div>
-        </div>
 
-        {/* Row 2 — scrolls left */}
-        <div className="snatch-track-wrapper">
-          <div className="snatch-track snatch-track-left">
-            {[...carouselProductsAlt, ...carouselProductsAlt].map((p, i) => (
-              <div key={`l-${i}`} className="snatch-card" onClick={() => setView('store')}>
-                <div className="snatch-card-img-wrap">
-                  <img 
-                    src={p.image} 
-                    alt={p.name} 
-                    className="snatch-card-img" 
-                    onError={(e) => { e.target.src = '/src/assets/logo.png'; }}
-                  />
+          <div className="model-carousel-grid">
+            {/* Left: Interactive Model Frame */}
+            <div className="model-photo-frame">
+              <img 
+                key={modelShowcaseSlides[modelSlideIdx].id} 
+                src={modelShowcaseSlides[modelSlideIdx].image} 
+                alt={modelShowcaseSlides[modelSlideIdx].title} 
+                className="model-showcase-img model-fade-in"
+              />
+              <button 
+                type="button"
+                className="quick-view-eye-btn-center"
+                title="Quick View Full Resolution Fit"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setViewModalImage(modelShowcaseSlides[modelSlideIdx]);
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+
+              <span className="model-slide-tag">{modelShowcaseSlides[modelSlideIdx].tag}</span>
+              
+              {/* Carousel Controls */}
+              <div className="model-carousel-controls">
+                <button 
+                  type="button"
+                  className="model-nav-btn" 
+                  onClick={() => setModelSlideIdx((modelSlideIdx - 1 + modelShowcaseSlides.length) % modelShowcaseSlides.length)}
+                  title="Previous Model"
+                >
+                  ←
+                </button>
+                <div className="model-dots">
+                  {modelShowcaseSlides.map((_, idx) => (
+                    <span 
+                      key={idx} 
+                      className={`model-dot ${modelSlideIdx === idx ? 'active' : ''}`}
+                      onClick={() => setModelSlideIdx(idx)}
+                    />
+                  ))}
                 </div>
-                <div className="snatch-card-tag">{p.tag || p.category}</div>
-                <div className="snatch-card-body">
-                  <div className="snatch-card-colors">
-                    {(p.colors || []).slice(0, 4).map(c => (
-                      <span key={c} className="snatch-dot" style={{ backgroundColor: colorHex[c] || '#8a5e66' }} title={c} />
-                    ))}
-                  </div>
-                  <div className="snatch-card-name">{p.name}</div>
-                  <div className="snatch-card-price">₦{p.price.toLocaleString()}</div>
+                <button 
+                  type="button"
+                  className="model-nav-btn" 
+                  onClick={() => setModelSlideIdx((modelSlideIdx + 1) % modelShowcaseSlides.length)}
+                  title="Next Model"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Ethos Quote Card & Product Specs */}
+            <div className="model-info-card">
+              <div className="quote-block">
+                <span className="quote-mark">“</span>
+                <p className="ethos-quote">
+                  We believe activewear should be comfortable, stylish, and affordable. We also give our customers the freedom to shop individual pieces or complete sets based on their needs and budget.
+                </p>
+                <span className="ethos-author">— TERINN FIT ETHOS</span>
+              </div>
+
+              <div className="active-look-box">
+                <span className="look-badge">Featured Fit</span>
+                <h3 className="look-title">{modelShowcaseSlides[modelSlideIdx].title}</h3>
+                <p className="look-desc">{modelShowcaseSlides[modelSlideIdx].desc}</p>
+                <div className="look-action-row">
+                  <span className="look-price">{modelShowcaseSlides[modelSlideIdx].price}</span>
+                  <button 
+                    className="btn btn-calc-submit" 
+                    style={{ margin: 0, padding: '0.65rem 1.4rem', width: 'auto', borderRadius: 25, fontSize: '0.78rem' }}
+                    onClick={() => setView('store')}
+                  >
+                    Shop This Look &rarr;
+                  </button>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -785,6 +746,41 @@ function Home({ setView, addToCart }) {
           </form>
         </div>
       </section>
+
+      {/* Full Photo Quick View Modal */}
+      {viewModalImage && (
+        <div className="quick-view-modal-overlay" onClick={() => setViewModalImage(null)}>
+          <div className="quick-view-modal-card" style={{ maxWidth: 560, padding: 28, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <button className="close-quick-view" onClick={() => setViewModalImage(null)}>&times;</button>
+            <div style={{ borderRadius: 18, overflow: 'hidden', background: '#fdfbf7', border: '1px solid var(--color-border)', marginBottom: 16 }}>
+              <img 
+                src={viewModalImage.image} 
+                alt={viewModalImage.title} 
+                style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', display: 'block' }} 
+              />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--color-brand-wine)', marginBottom: 4 }}>
+              {viewModalImage.title}
+            </h3>
+            <span style={{ fontSize: 13, color: '#db2777', fontWeight: 700, display: 'block', marginBottom: 8 }}>
+              {viewModalImage.tag} • {viewModalImage.price}
+            </span>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5, margin: '0 auto 18px', maxWidth: 460 }}>
+              {viewModalImage.desc}
+            </p>
+            <button 
+              className="btn btn-calc-submit" 
+              style={{ padding: '0.75rem 2rem', borderRadius: 25, fontSize: '0.85rem' }}
+              onClick={() => {
+                setViewModalImage(null);
+                setView('store');
+              }}
+            >
+              Shop This Look &rarr;
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

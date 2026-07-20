@@ -229,6 +229,9 @@ function Store({ addToCart }) {
   };
 
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
+  const allCategoryFilters = ['All', ...activeCategories];
 
   return (
     <>
@@ -262,19 +265,91 @@ function Store({ addToCart }) {
       {/* Catalog Section */}
       <section id="catalog" className={`store-section ${activeTab === 'catalog' ? 'active' : ''}`}>
         <div className="store-container">
-          {activeCategories.map((category) => {
-            const categoryProducts = category === 'Best Sellers'
-              ? productsList.filter((p) => p.tag === 'Best Seller')
-              : productsList.filter((p) => (p.category || 'Other').toLowerCase() === category.toLowerCase());
-            if (categoryProducts.length === 0) return null;
+          {/* Search Bar & Category Filter Toolbar */}
+          <div className="store-filter-toolbar">
+            <div className="store-search-wrap">
+              <svg className="store-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input 
+                type="text" 
+                className="store-search-input" 
+                placeholder="Search snatched activewear, tops, leggings, accessories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button type="button" className="store-search-clear" onClick={() => setSearchQuery('')}>
+                  &times;
+                </button>
+              )}
+            </div>
 
-            return (
-              <div key={category} className="store-category-section">
-                <div className="store-category-header">
-                  <h2 className="store-category-title">{category}</h2>
+            {/* Category Filter Pills */}
+            <div className="store-category-pills">
+              {allCategoryFilters.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`filter-pill ${selectedCategoryFilter === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategoryFilter(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(searchQuery.trim() !== '' || selectedCategoryFilter !== 'All') ? (
+            <div className="store-category-section">
+              <div className="store-category-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 className="store-category-title">
+                  {selectedCategoryFilter !== 'All' ? selectedCategoryFilter : 'Search Results'}
+                </h2>
+                <span style={{ fontSize: 13, color: '#888', fontWeight: 600 }}>
+                  {
+                    productsList.filter(p => {
+                      const matchSearch = searchQuery.trim() === '' || 
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (p.desc || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (p.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (p.tag || '').toLowerCase().includes(searchQuery.toLowerCase());
+                      const matchCat = selectedCategoryFilter === 'All' ||
+                        (selectedCategoryFilter === 'Best Sellers' ? p.tag === 'Best Seller' : (p.category || '').toLowerCase() === selectedCategoryFilter.toLowerCase());
+                      return matchSearch && matchCat;
+                    }).length
+                  } Items Found
+                </span>
+              </div>
+
+              {productsList.filter(p => {
+                const matchSearch = searchQuery.trim() === '' || 
+                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (p.desc || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (p.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (p.tag || '').toLowerCase().includes(searchQuery.toLowerCase());
+                const matchCat = selectedCategoryFilter === 'All' ||
+                  (selectedCategoryFilter === 'Best Sellers' ? p.tag === 'Best Seller' : (p.category || '').toLowerCase() === selectedCategoryFilter.toLowerCase());
+                return matchSearch && matchCat;
+              }).length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 20px', color: '#999' }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, color: 'var(--color-brand-wine)' }}>No products found</h3>
+                  <p style={{ fontSize: 13, color: '#666', marginTop: 4 }}>Try searching with a different term or filter category.</p>
                 </div>
+              ) : (
                 <div className="products-grid">
-                  {categoryProducts.map((prod) => (
+                  {productsList.filter(p => {
+                    const matchSearch = searchQuery.trim() === '' || 
+                      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (p.desc || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (p.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (p.tag || '').toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchCat = selectedCategoryFilter === 'All' ||
+                      (selectedCategoryFilter === 'Best Sellers' ? p.tag === 'Best Seller' : (p.category || '').toLowerCase() === selectedCategoryFilter.toLowerCase());
+                    return matchSearch && matchCat;
+                  }).map((prod) => (
                     <div key={prod.id} className="product-card compact-product-card" onClick={() => setQuickViewProduct(prod)}>
                       <div className="product-img-wrap">
                         <img src={prod.img} alt={prod.name} />
@@ -312,9 +387,63 @@ function Store({ addToCart }) {
                     </div>
                   ))}
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ) : (
+            activeCategories.map((category) => {
+              const categoryProducts = category === 'Best Sellers'
+                ? productsList.filter((p) => p.tag === 'Best Seller')
+                : productsList.filter((p) => (p.category || 'Other').toLowerCase() === category.toLowerCase());
+              if (categoryProducts.length === 0) return null;
+
+              return (
+                <div key={category} className="store-category-section">
+                  <div className="store-category-header">
+                    <h2 className="store-category-title">{category}</h2>
+                  </div>
+                  <div className="products-grid">
+                    {categoryProducts.map((prod) => (
+                      <div key={prod.id} className="product-card compact-product-card" onClick={() => setQuickViewProduct(prod)}>
+                        <div className="product-img-wrap">
+                          <img src={prod.img} alt={prod.name} />
+                          {prod.tag && <span className="product-tag">{prod.tag}</span>}
+                          <button 
+                            type="button"
+                            className="quick-view-eye-btn-center"
+                            title="Quick View Product"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setQuickViewProduct(prod);
+                            }}
+                          >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="product-info">
+                          <h3 className="product-title">{prod.name}</h3>
+                          <span className="product-price">₦{prod.price.toLocaleString()}</span>
+                          
+                          <button 
+                            className="btn btn-add-cart"
+                            style={{ marginTop: 'auto' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddCatalogItem(prod, e);
+                            }}
+                          >
+                            Add to Bag
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
 
