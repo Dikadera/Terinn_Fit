@@ -1232,10 +1232,49 @@
             { id: 'bands',        name: 'Terinn Gym Bands',     price: 6000,  category: 'Accessories', stock: 30, tag: '',       image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
         ];
         const DEFAULT_CATEGORIES = ['Tops', 'Bottoms', 'Sets', 'Accessories'];
+        const DEFAULT_ORDERS = [
+            {
+                id: 'TF-104920',
+                date: new Date(Date.now() - 86400000 * 2).toISOString(),
+                customerName: 'Kemi Adebayo',
+                customerEmail: 'kemi.adebayo@gmail.com',
+                customerPhone: '+2348012345678',
+                address: '14 Admiralty Way, Lekki Phase 1, Lagos State',
+                items: [{ name: 'Terinn Leggings', quantity: 1, price: 20000 }, { name: 'Terinn Sports Bra', quantity: 1, price: 18000 }],
+                total: 38000,
+                status: 'Dispatched'
+            },
+            {
+                id: 'TF-104921',
+                date: new Date(Date.now() - 86400000).toISOString(),
+                customerName: 'Blessing Okon',
+                customerEmail: 'blessing.okon@yahoo.com',
+                customerPhone: '+2349087654321',
+                address: '42 Isaac John Street, Ikeja GRA, Lagos State',
+                items: [{ name: 'Terinn Crop Top', quantity: 2, price: 20000 }],
+                total: 40000,
+                status: 'Processing'
+            },
+            {
+                id: 'TF-104922',
+                date: new Date().toISOString(),
+                customerName: 'Chioma Nnadi',
+                customerEmail: 'chioma.n@gmail.com',
+                customerPhone: '+2347033445566',
+                address: 'Plot 10 Victoria Island Extension, Lagos State',
+                items: [{ name: 'Crimson Red Power Bodysuit', quantity: 1, price: 22000 }],
+                total: 22000,
+                status: 'Delivered'
+            }
+        ];
 
         // ─── Local Storage Loader Helpers ───
         const load = (key, fallback) => {
             const val = localStorage.getItem(key);
+            if (!val && fallback) {
+                localStorage.setItem(key, JSON.stringify(fallback));
+                return fallback;
+            }
             return val ? JSON.parse(val) : fallback;
         };
         const save = (key, val) => localStorage.setItem(key, JSON.stringify(val));
@@ -1246,7 +1285,7 @@
             image: (p.image || '').replace('/src/assets/', '/assets/')
         }));
         let categories = load('terinn_admin_categories', DEFAULT_CATEGORIES);
-        let orders   = load('terinn_admin_orders', []);
+        let orders   = load('terinn_admin_orders', DEFAULT_ORDERS);
         let settings = load('terinn_admin_settings', {
             whatsapp: '2349053602119',
             discount: 0,

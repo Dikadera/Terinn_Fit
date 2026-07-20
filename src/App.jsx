@@ -23,12 +23,53 @@ function App() {
   const [trackQuery, setTrackQuery] = useState('');
   const [trackResult, setTrackResult] = useState(null);
 
+  const DEFAULT_ORDERS = [
+    {
+      id: 'TF-104920',
+      date: new Date(Date.now() - 86400000 * 2).toISOString(),
+      customerName: 'Kemi Adebayo',
+      customerEmail: 'kemi.adebayo@gmail.com',
+      customerPhone: '+2348012345678',
+      address: '14 Admiralty Way, Lekki Phase 1, Lagos State',
+      items: [{ name: 'Terinn Leggings', quantity: 1, price: 20000 }, { name: 'Terinn Sports Bra', quantity: 1, price: 18000 }],
+      total: 38000,
+      status: 'Dispatched'
+    },
+    {
+      id: 'TF-104921',
+      date: new Date(Date.now() - 86400000).toISOString(),
+      customerName: 'Blessing Okon',
+      customerEmail: 'blessing.okon@yahoo.com',
+      customerPhone: '+2349087654321',
+      address: '42 Isaac John Street, Ikeja GRA, Lagos State',
+      items: [{ name: 'Terinn Crop Top', quantity: 2, price: 20000 }],
+      total: 40000,
+      status: 'Processing'
+    },
+    {
+      id: 'TF-104922',
+      date: new Date().toISOString(),
+      customerName: 'Chioma Nnadi',
+      customerEmail: 'chioma.n@gmail.com',
+      customerPhone: '+2347033445566',
+      address: 'Plot 10 Victoria Island Extension, Lagos State',
+      items: [{ name: 'Crimson Red Power Bodysuit', quantity: 1, price: 22000 }],
+      total: 22000,
+      status: 'Delivered'
+    }
+  ];
+
   const handleTrackSubmit = (e) => {
     e.preventDefault();
     if (!trackQuery.trim()) return;
 
     try {
-      const storedOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+      let storedOrders = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+      if (storedOrders.length === 0) {
+        storedOrders = DEFAULT_ORDERS;
+        localStorage.setItem('terinn_admin_orders', JSON.stringify(DEFAULT_ORDERS));
+      }
+
       const queryLower = trackQuery.trim().toLowerCase();
       const match = storedOrders.find(o =>
         (o.id || '').toLowerCase() === queryLower ||
@@ -734,7 +775,7 @@ Please send payment details to confirm.`;
           </div>
         </div>
         <div className="footer-bottom-row">
-          <p>&copy; 2026 Terinn Fit Activewear. Designed with strength and elegance. Lagos, Nigeria.</p>
+          <p>&copy; 2026 Terinn Fit Activewear. Designed with ❤️ by techBundo. Lagos, Nigeria.</p>
           <a href="/admin.html" target="_blank" style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', letterSpacing: '1px', marginTop: 4, display: 'inline-block' }} title="Admin Access">admin ⚙</a>
         </div>
       </footer>
@@ -896,6 +937,35 @@ Please send payment details to confirm.`;
           </div>
         </div>
       )}
+      {/* Dynamic Floating Glassmorphic Side Social Dock */}
+      <div className="floating-side-social-dock">
+        <a 
+          href="https://instagram.com/terinn.fit" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="side-social-btn instagram"
+          title="Follow @terinn.fit on Instagram"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span className="side-social-tooltip">@terinn.fit</span>
+        </a>
+        <a 
+          href="https://wa.me/2349053602119?text=Hello%20Terinn%20Fit,%20I'm%20interested%20in%20your%20activewear!" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="side-social-btn whatsapp"
+          title="Chat on WhatsApp"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span className="side-social-tooltip">WhatsApp</span>
+        </a>
+      </div>
     </div>
   );
 }
