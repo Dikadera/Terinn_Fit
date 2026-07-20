@@ -110,6 +110,7 @@ function App() {
   const [custPhone, setCustPhone] = useState('');
   const [custAddress, setCustAddress] = useState('');
   const [paymentChoice, setPaymentChoice] = useState('flutterwave');
+  const [successModalData, setSuccessModalData] = useState(null);
 
   const handleCheckout = () => {
     setIsCartOpen(false);
@@ -215,9 +216,9 @@ function App() {
               localStorage.setItem('terinn_admin_orders', JSON.stringify(existingOrders));
             } catch (err) {}
 
-            alert(`🎉 Payment Successful!\nOrder Ref: ${orderId}\nThank you for shopping with Terinn Fit!`);
             clearCart();
             setCheckoutModalOpen(false);
+            setSuccessModalData(newOrder);
             setCustName('');
             setCustEmail('');
             setCustPhone('');
@@ -466,6 +467,123 @@ Please send payment details to confirm.`;
                 }
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Dynamic Payment Success Modal */}
+      {successModalData && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 5, 8, 0.85)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+          padding: 16
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #421820 0%, #260c12 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.28)',
+            borderRadius: 24,
+            padding: '32px 24px',
+            width: '100%',
+            maxWidth: 420,
+            color: '#ffffff',
+            boxShadow: '0 30px 70px rgba(0,0,0,0.65)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              background: 'rgba(37, 211, 102, 0.18)',
+              border: '2px solid #25d366',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              fontSize: 34,
+              color: '#25d366',
+              boxShadow: '0 0 30px rgba(37, 211, 102, 0.45)'
+            }}>
+              ✓
+            </div>
+
+            <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#81c784', fontWeight: 700 }}>Payment Confirmed</span>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, margin: '6px 0 8px', color: '#ffffff' }}>Order Successful!</h3>
+            <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 20, lineHeight: 1.4 }}>
+              Thank you <strong style={{ color: '#ffffff' }}>{successModalData.customerName}</strong>! Your payment was received and your snatched fit is being prepared.
+            </p>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: 16,
+              padding: '16px 14px',
+              marginBottom: 20,
+              textAlign: 'left',
+              fontSize: 12
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ opacity: 0.7 }}>Order Ref:</span>
+                <strong style={{ color: '#f3d4d3', letterSpacing: 0.5 }}>{successModalData.id}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ opacity: 0.7 }}>Total Amount:</span>
+                <strong style={{ color: '#ffffff', fontSize: 14 }}>₦{successModalData.total.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ opacity: 0.7 }}>Payment Status:</span>
+                <span style={{ color: '#81c784', fontWeight: 600 }}>✓ Paid Online</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => {
+                  const text = `Hi Terinn Fit! I just paid online for Order ${successModalData.id} (₦${successModalData.total.toLocaleString()}). Please confirm delivery details!`;
+                  window.open(`https://wa.me/2349053602119?text=${encodeURIComponent(text)}`, '_blank');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '13px 16px',
+                  borderRadius: 14,
+                  border: 'none',
+                  background: '#25d366',
+                  color: '#ffffff',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 18px rgba(37, 211, 102, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8
+                }}
+              >
+                💬 Send Receipt to WhatsApp
+              </button>
+
+              <button
+                onClick={() => setSuccessModalData(null)}
+                className="btn-calc-submit"
+                style={{
+                  width: '100%',
+                  padding: '13px 16px',
+                  borderRadius: 14,
+                  marginTop: 0,
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: 'none',
+                  fontSize: 13
+                }}
+              >
+                Continue Shopping ➔
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -160,18 +160,57 @@ function Home({ setView, addToCart }) {
     }
   });
 
-  // Hero Carousel State
-  const [currentSlide, setCurrentSlide] = useState(4); // 5th dot active initially
-  const slideCount = 5;
+  // Hero Carousel State & Multi-Slide Data
+  const heroSlides = [
+    {
+      id: 0,
+      tag: "Collection 01 • Mauve Compression Set",
+      title: "Your New Everyday Power Fit.",
+      desc: "Built for the girls who lift. Snatched, strong, and unapologetically you.",
+      btnPrimaryText: "EXPLORE CUSTOMIZER",
+      btnPrimaryAction: () => setView('store'),
+      btnSecondaryText: "VIEW LOOKBOOK",
+      btnSecondaryHref: "#lookbook",
+      bgImg: heroBgImg
+    },
+    {
+      id: 1,
+      tag: "Collection 02 • Slate Blue Core Set",
+      title: "Sculpted Active Compression.",
+      desc: "Maximum breathability & support designed for heavy leg days and training.",
+      btnPrimaryText: "SHOP SLATE BLUE",
+      btnPrimaryAction: () => setView('store'),
+      btnSecondaryText: "FIND YOUR FIT",
+      btnSecondaryHref: "#size-guide",
+      bgImg: gallery1Img
+    },
+    {
+      id: 2,
+      tag: "Bundle Deal • Save ₦6,000 Instantly",
+      title: "Mix & Match Custom Sets.",
+      desc: "Pair any Sports Bra or Crop Top with Leggings or Shorts & get ₦6k off.",
+      btnPrimaryText: "BUILD YOUR SET",
+      btnPrimaryAction: () => setView('store'),
+      btnSecondaryText: "EXPLORE STORE",
+      btnSecondaryAction: () => setView('store'),
+      bgImg: cropTopImg
+    }
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
 
   const handleSlideChange = (index) => {
-    if (index < 0) index = slideCount - 1;
-    if (index >= slideCount) index = 0;
+    if (index < 0) index = heroSlides.length - 1;
+    if (index >= heroSlides.length) index = 0;
     setCurrentSlide(index);
   };
-
-
-
 
   // Size Calculator State
   const [calcTab, setCalcTab] = useState('standard');
@@ -244,34 +283,47 @@ function Home({ setView, addToCart }) {
     }, 1000);
   };
 
+  const activeSlide = heroSlides[currentSlide];
+
   return (
     <>
       <section className="hero-section-new">
         <div className="hero-layout">
 
-          {/* Left: Glassmorphic card — underlay */}
+          {/* Left: Glassmorphic card */}
           <div className="hero-card-new">
 
             <h2 className="hero-card-logo-new">TERINN FIT</h2>
 
-            <h1 className="hero-card-title-new">
-              Your New Everyday<br />Power Fit.
-            </h1>
+            <div key={activeSlide.id} className="hero-slide-content">
+              <h1 className="hero-card-title-new">
+                {activeSlide.title}
+              </h1>
 
-            <p className="hero-card-desc-new">
-              Built for the girls who lift.<br />
-              Snatched, strong, and unapologetically you.
-            </p>
+              <p className="hero-card-desc-new">
+                {activeSlide.desc}
+              </p>
 
-            <div className="hero-card-buttons-new">
-              <button onClick={() => setView('store')} className="hero-card-btn primary">EXPLORE CUSTOMIZER</button>
-              <a href="#lookbook" className="hero-card-btn secondary">VIEW LOOKBOOK</a>
+              <div className="hero-card-buttons-new">
+                <button onClick={activeSlide.btnPrimaryAction} className="hero-card-btn primary">
+                  {activeSlide.btnPrimaryText}
+                </button>
+                {activeSlide.btnSecondaryHref ? (
+                  <a href={activeSlide.btnSecondaryHref} className="hero-card-btn secondary">
+                    {activeSlide.btnSecondaryText}
+                  </a>
+                ) : (
+                  <button onClick={activeSlide.btnSecondaryAction} className="hero-card-btn secondary">
+                    {activeSlide.btnSecondaryText}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="hero-card-controls-new">
               <button className="arrow-btn-new" onClick={() => handleSlideChange(currentSlide - 1)}>←</button>
               <div className="dots-container-new">
-                {[...Array(slideCount)].map((_, idx) => (
+                {heroSlides.map((_, idx) => (
                   <div key={idx} className={`dot-new ${currentSlide === idx ? 'active' : ''}`} onClick={() => handleSlideChange(idx)}></div>
                 ))}
               </div>
@@ -280,20 +332,11 @@ function Home({ setView, addToCart }) {
 
           </div>
 
-
-          {/* Right: Model photo — pulled left via negative margin to overlay card edge */}
-          <img src={heroBgImg} alt="Terinn Fit Model" className="hero-model-img" />
+          {/* Right: Dynamic Model photo overlay */}
+          <img key={activeSlide.id} src={activeSlide.bgImg} alt="Terinn Fit Model" className="hero-model-img hero-model-fade" />
 
         </div>
-        <div className="hero-bottom-tag-new">Collection 01 • Mauve Set</div>
-
-        {/* ── Dark Marquee anchored to the bottom of the hero ── */}
-        <div className="fashion-marquee hero-marquee-bottom">
-          <div className="marquee-content">
-            <span>FOR THE GIRLS WHO LIFT • SNATCHED FITS ONLY • COMFORTABLE &amp; STYLISH • DELIVERING NATIONWIDE • FOR THE GIRLS WHO LIFT • SNATCHED FITS ONLY • </span>
-            <span>FOR THE GIRLS WHO LIFT • SNATCHED FITS ONLY • COMFORTABLE &amp; STYLISH • DELIVERING NATIONWIDE • FOR THE GIRLS WHO LIFT • SNATCHED FITS ONLY • </span>
-          </div>
-        </div>
+        <div className="hero-bottom-tag-new">{activeSlide.tag}</div>
       </section>
 
 

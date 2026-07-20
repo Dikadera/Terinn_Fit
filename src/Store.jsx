@@ -219,6 +219,8 @@ function Store({ addToCart }) {
     }, 600);
   };
 
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+
   return (
     <>
       {/* Store Hero Banner */}
@@ -264,45 +266,36 @@ function Store({ addToCart }) {
                 </div>
                 <div className="products-grid">
                   {categoryProducts.map((prod) => (
-                    <div key={prod.id} className="product-card">
+                    <div key={prod.id} className="product-card compact-product-card" onClick={() => setQuickViewProduct(prod)}>
                       <div className="product-img-wrap">
                         <img src={prod.img} alt={prod.name} />
                         {prod.tag && <span className="product-tag">{prod.tag}</span>}
+                        <button 
+                          type="button"
+                          className="quick-view-eye-btn-center"
+                          title="Quick View Product"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQuickViewProduct(prod);
+                          }}
+                        >
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
                       </div>
                       <div className="product-info">
                         <h3 className="product-title">{prod.name}</h3>
                         <span className="product-price">₦{prod.price.toLocaleString()}</span>
-                        <p className="product-desc">{prod.desc}</p>
                         
-                        <div className="product-selectors">
-                          <div className="select-field">
-                            <label>Color</label>
-                            <select 
-                              className="prod-color-select"
-                              value={choices[prod.id] ? choices[prod.id].color : (prod.colors ? prod.colors[0] : 'Terinn Mauve')}
-                              onChange={(e) => handleChoiceChange(prod.id, 'color', e.target.value)}
-                            >
-                              {(prod.colors || ['Terinn Mauve']).map((c) => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="select-field">
-                            <label>Size</label>
-                            <select 
-                              className="prod-size-select"
-                              value={choices[prod.id] ? choices[prod.id].size : 'M'}
-                              onChange={(e) => handleChoiceChange(prod.id, 'size', e.target.value)}
-                            >
-                              {sizes.map((s) => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
                         <button 
                           className="btn btn-add-cart"
-                          onClick={(e) => handleAddCatalogItem(prod, e)}
+                          style={{ marginTop: 'auto' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddCatalogItem(prod, e);
+                          }}
                         >
                           Add to Bag
                         </button>
@@ -315,6 +308,76 @@ function Store({ addToCart }) {
           })}
         </div>
       </section>
+
+      {/* Quick View Modal */}
+      {quickViewProduct && (
+        <div className="quick-view-modal-overlay" onClick={() => setQuickViewProduct(null)}>
+          <div className="quick-view-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="close-quick-view" onClick={() => setQuickViewProduct(null)}>&times;</button>
+            <div className="quick-view-grid">
+              <div className="quick-view-img-col">
+                <img src={quickViewProduct.img} alt={quickViewProduct.name} />
+                {quickViewProduct.tag && <span className="product-tag">{quickViewProduct.tag}</span>}
+              </div>
+              <div className="quick-view-info-col">
+                <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--color-brand-wine)', fontWeight: 700 }}>
+                  {quickViewProduct.category || 'Activewear'}
+                </span>
+                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, margin: '4px 0 6px', color: 'var(--color-brand-wine)' }}>
+                  {quickViewProduct.name}
+                </h2>
+                <span style={{ fontSize: 20, fontWeight: 700, color: '#db2777', display: 'block', marginBottom: 12 }}>
+                  ₦{quickViewProduct.price.toLocaleString()}
+                </span>
+                <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 18 }}>
+                  {quickViewProduct.desc}
+                </p>
+
+                <div className="quick-view-selectors" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div className="select-field">
+                    <label style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--color-text-muted)', marginBottom: 6 }}>Select Color</label>
+                    <select 
+                      className="prod-color-select"
+                      value={choices[quickViewProduct.id] ? choices[quickViewProduct.id].color : (quickViewProduct.colors ? quickViewProduct.colors[0] : 'Terinn Mauve')}
+                      onChange={(e) => handleChoiceChange(quickViewProduct.id, 'color', e.target.value)}
+                      style={{ padding: '8px 12px', borderRadius: 8 }}
+                    >
+                      {(quickViewProduct.colors || ['Terinn Mauve']).map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="select-field">
+                    <label style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--color-text-muted)', marginBottom: 6 }}>Select Size</label>
+                    <select 
+                      className="prod-size-select"
+                      value={choices[quickViewProduct.id] ? choices[quickViewProduct.id].size : 'M'}
+                      onChange={(e) => handleChoiceChange(quickViewProduct.id, 'size', e.target.value)}
+                      style={{ padding: '8px 12px', borderRadius: 8 }}
+                    >
+                      {sizes.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  className="btn-calc-submit"
+                  style={{ marginTop: 20, width: '100%' }}
+                  onClick={(e) => {
+                    handleAddCatalogItem(quickViewProduct, e);
+                    setQuickViewProduct(null);
+                  }}
+                >
+                  Add ₦{quickViewProduct.price.toLocaleString()} to Bag
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Customizer Section */}
       <section id="customizer-sec" className={`store-section fashion-customizer-section ${activeTab === 'customizer-sec' ? 'active' : ''}`}>
