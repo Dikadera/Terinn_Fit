@@ -27,26 +27,26 @@ function App() {
         const hasGymGloves = parsed.some(p => p.id === 'gym-gloves');
         if (!hasGymGloves) {
           const defaultAccs = [
-            { id: 'gym-gloves',   name: 'Terinn Gym Gloves',   price: 12000, category: 'Accessories', stock: 15, tag: '', image: '/src/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
-            { id: 'sanitizer',    name: 'Terinn Sanitizer',    price: 3500,  category: 'Accessories', stock: 50, tag: '', image: '/src/assets/hand_sanitizer.png', colors: ['Clear'] },
-            { id: 'water-bottle', name: 'Terinn Water Bottle', price: 8500,  category: 'Accessories', stock: 25, tag: '', image: '/src/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
-            { id: 'bands',        name: 'Terinn Gym Bands',    price: 6000,  category: 'Accessories', stock: 30, tag: '', image: '/src/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
+            { id: 'gym-gloves',   name: 'Terinn Gym Gloves',   price: 12000, category: 'Accessories', stock: 15, tag: '', image: '/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
+            { id: 'sanitizer',    name: 'Terinn Sanitizer',    price: 3500,  category: 'Accessories', stock: 50, tag: '', image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
+            { id: 'water-bottle', name: 'Terinn Water Bottle', price: 8500,  category: 'Accessories', stock: 25, tag: '', image: '/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
+            { id: 'bands',        name: 'Terinn Gym Bands',    price: 6000,  category: 'Accessories', stock: 30, tag: '', image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
           ];
           localStorage.setItem('terinn_admin_products', JSON.stringify([...parsed, ...defaultAccs]));
           window.location.reload();
         }
       } else {
         const defaultList = [
-          { id: 'sports-bra',   name: 'Terinn Sports Bra',    price: 18000, category: 'Tops',    stock: 24, tag: 'Best Seller', image: '/src/assets/sports_bra_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'leggings',     name: 'Terinn Leggings',       price: 20000, category: 'Bottoms', stock: 18, tag: 'Best Seller', image: '/src/assets/leggings_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'crop-top',     name: 'Terinn Crop Top',       price: 20000, category: 'Tops',    stock: 15, tag: 'Best Seller',           image: '/src/assets/crop_top_black.png', colors: ['Midnight Black','Terinn Mauve','Slate Blue','Olive Green'] },
-          { id: 'long-sleeve',  name: 'Terinn Long Sleeve',    price: 22000, category: 'Tops',    stock: 10, tag: 'Best Seller',           image: '/src/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'biker-shorts', name: 'Terinn Biker Shorts',   price: 16000, category: 'Bottoms', stock: 20, tag: 'Best Seller',           image: '/src/assets/terinn_gallery_1.png', colors: ['Slate Blue','Terinn Mauve','Midnight Black','Olive Green'] },
-          { id: 'shorts',       name: 'Terinn Shorts',         price: 15000, category: 'Bottoms', stock: 12, tag: 'Best Seller',           image: '/src/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
-          { id: 'gym-gloves',   name: 'Terinn Gym Gloves',    price: 12000, category: 'Accessories', stock: 15, tag: 'Best Seller',       image: '/src/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
-          { id: 'sanitizer',    name: 'Terinn Sanitizer',     price: 3500,  category: 'Accessories', stock: 50, tag: '',       image: '/src/assets/hand_sanitizer.png', colors: ['Clear'] },
-          { id: 'water-bottle', name: 'Terinn Water Bottle',  price: 8500,  category: 'Accessories', stock: 25, tag: 'Best Seller',       image: '/src/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
-          { id: 'bands',        name: 'Terinn Gym Bands',     price: 6000,  category: 'Accessories', stock: 30, tag: 'Best Seller',       image: '/src/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
+          { id: 'sports-bra',   name: 'Terinn Sports Bra',    price: 18000, category: 'Tops',    stock: 24, tag: 'Best Seller', image: '/assets/sports_bra_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
+          { id: 'leggings',     name: 'Terinn Leggings',       price: 20000, category: 'Bottoms', stock: 18, tag: 'Best Seller', image: '/assets/leggings_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
+          { id: 'crop-top',     name: 'Terinn Crop Top',       price: 20000, category: 'Tops',    stock: 15, tag: 'Best Seller',           image: '/assets/crop_top_black.png', colors: ['Midnight Black','Terinn Mauve','Slate Blue','Olive Green'] },
+          { id: 'long-sleeve',  name: 'Terinn Long Sleeve',    price: 22000, category: 'Tops',    stock: 10, tag: 'Best Seller',           image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
+          { id: 'biker-shorts', name: 'Terinn Biker Shorts',   price: 16000, category: 'Bottoms', stock: 20, tag: 'Best Seller',           image: '/assets/terinn_gallery_1.png', colors: ['Slate Blue','Terinn Mauve','Midnight Black','Olive Green'] },
+          { id: 'shorts',       name: 'Terinn Shorts',         price: 15000, category: 'Bottoms', stock: 12, tag: 'Best Seller',           image: '/assets/terinn_hero_bg.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
+          { id: 'gym-gloves',   name: 'Terinn Gym Gloves',    price: 12000, category: 'Accessories', stock: 15, tag: 'Best Seller',       image: '/assets/gym_gloves.png', colors: ['Midnight Black','Slate Blue'] },
+          { id: 'sanitizer',    name: 'Terinn Sanitizer',     price: 3500,  category: 'Accessories', stock: 50, tag: '',       image: '/assets/hand_sanitizer.png', colors: ['Clear'] },
+          { id: 'water-bottle', name: 'Terinn Water Bottle',  price: 8500,  category: 'Accessories', stock: 25, tag: 'Best Seller',       image: '/assets/water_bottle.png', colors: ['Terinn Mauve','Midnight Black'] },
+          { id: 'bands',        name: 'Terinn Gym Bands',     price: 6000,  category: 'Accessories', stock: 30, tag: 'Best Seller',       image: '/assets/resistance_bands.png', colors: ['Terinn Mauve'] }
         ];
         localStorage.setItem('terinn_admin_products', JSON.stringify(defaultList));
         window.location.reload();
@@ -207,7 +207,7 @@ function App() {
               paymentMethod: 'Flutterwave (Paid)',
               items: cart.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, color: i.color, size: i.size })),
               total: finalTotal,
-              status: 'Paid'
+              status: 'paid'
             };
 
             try {

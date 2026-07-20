@@ -34,6 +34,15 @@ function Store({ addToCart }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         const assetMap = {
+          '/assets/sports_bra_mauve.png': sportsBraImg,
+          '/assets/leggings_mauve.png': leggingsImg,
+          '/assets/crop_top_black.png': cropTopImg,
+          '/assets/terinn_hero_bg.png': longSleeveImg,
+          '/assets/terinn_gallery_1.png': bikerShortsImg,
+          '/assets/gym_gloves.png': gymGlovesImg,
+          '/assets/hand_sanitizer.png': sanitizerImg,
+          '/assets/water_bottle.png': waterBottleImg,
+          '/assets/resistance_bands.png': gymBandsImg,
           '/src/assets/sports_bra_mauve.png': sportsBraImg,
           '/src/assets/leggings_mauve.png': leggingsImg,
           '/src/assets/crop_top_black.png': cropTopImg,
