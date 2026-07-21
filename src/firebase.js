@@ -3,13 +3,13 @@ import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'firebase
 
 // Official Firebase Project Credentials for degree-ce3ad
 const firebaseConfig = {
-  apiKey: "AIzaSyAk2epUFGW2PWvW3aq0EJWGlRepTxWKkzU",
-  authDomain: "degree-ce3ad.firebaseapp.com",
-  projectId: "degree-ce3ad",
-  storageBucket: "degree-ce3ad.firebasestorage.app",
-  messagingSenderId: "277688141959",
-  appId: "1:277688141959:web:98b06858d81b59250c9022",
-  measurementId: "G-PTL0ZRFD7W"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase App
