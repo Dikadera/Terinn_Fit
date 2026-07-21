@@ -1235,33 +1235,46 @@
         </div>
     </div>
 
-    <!-- Firebase App and Firestore SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- No SDK needed — using Firestore REST API directly for named database support -->
 
     <script>
-        // Initialize Firebase in Admin Portal
-        const firebaseConfig = {
-            apiKey: "AIzaSyAk2epUFGW2PWvW3aq0EJWGlRepTxWKkzU",
-            authDomain: "degree-ce3ad.firebaseapp.com",
-            projectId: "degree-ce3ad",
-            storageBucket: "degree-ce3ad.firebasestorage.app",
-            messagingSenderId: "277688141959",
-            appId: "1:277688141959:web:98b06858d81b59250c9022",
-            measurementId: "G-PTL0ZRFD7W"
-        };
-        firebase.initializeApp(firebaseConfig);
-        
-        let db;
-        try {
-            db = firebase.app().firestore("terinn");
-        } catch(e) {
-            try {
-                db = firebase.firestore();
-            } catch(err) {
-                console.warn("Firestore admin init warning:", err);
+        // ─── Firestore REST API Helper (targets 'terinn' named database) ───
+        const FIREBASE_API_KEY = "AIzaSyAk2epUFGW2PWvW3aq0EJWGlRepTxWKkzU";
+        const FIRESTORE_BASE = "https://firestore.googleapis.com/v1/projects/degree-ce3ad/databases/terinn/documents";
+
+        const firestorePatch = async (collection, docId, fields) => {
+            const fieldPaths = Object.keys(fields).map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+            const url = `${FIRESTORE_BASE}/${collection}/${docId}?${fieldPaths}&key=${FIREBASE_API_KEY}`;
+
+            const firestoreFields = {};
+            for (const [key, val] of Object.entries(fields)) {
+                if (typeof val === 'string') firestoreFields[key] = { stringValue: val };
+                else if (typeof val === 'number') firestoreFields[key] = { integerValue: val };
+                else if (typeof val === 'boolean') firestoreFields[key] = { booleanValue: val };
+                else firestoreFields[key] = { stringValue: String(val) };
             }
-        }
+
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fields: firestoreFields })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error?.message || `HTTP ${res.status}`);
+            }
+            return res.json();
+        };
+
+        const firestoreDelete = async (collection, docId) => {
+            const url = `${FIRESTORE_BASE}/${collection}/${docId}?key=${FIREBASE_API_KEY}`;
+            const res = await fetch(url, { method: 'DELETE' });
+            if (!res.ok && res.status !== 404) {
+                const err = await res.json();
+                throw new Error(err.error?.message || `HTTP ${res.status}`);
+            }
+        };
 
         const DEFAULT_PRODUCTS = [
             { id: 'sports-bra',   name: 'Terinn Sports Bra',    price: 18000, category: 'Tops',    stock: 24, tag: 'Best Seller', image: '/assets/sports_bra_mauve.png', colors: ['Terinn Mauve','Midnight Black','Slate Blue','Olive Green'] },
@@ -2031,17 +2044,13 @@
             renderOrdersTable();
             updateKPIs();
 
-            // Sync update to Cloud Firestore in real time
+            // Sync to Cloud Firestore via REST API (works with named 'terinn' database)
             try {
-                if (db) {
-                    await db.collection("orders").doc(id).set({ status }, { merge: true });
-                    showToast(`Order ${id} → ${status} synced to Cloud ✓`, 'success');
-                } else {
-                    showToast(`Order ${id} status updated locally (no cloud sync)`, 'info');
-                }
+                await firestorePatch('orders', id, { status });
+                showToast(`Order ${id} → ${status} synced to Cloud ✓`, 'success');
             } catch (err) {
-                console.error("Cloud order status sync FAILED:", err.code, err.message);
-                showToast(`Cloud sync failed: ${err.code || err.message}. Check Firestore rules!`, 'error');
+                console.error('Cloud order status sync FAILED:', err.message);
+                showToast(`Cloud sync failed: ${err.message}`, 'error');
             }
         };
 
@@ -2051,16 +2060,14 @@
                 save('terinn_admin_orders', orders);
                 renderOrdersTable();
                 updateKPIs();
-                showToast('Order logs deleted successfully!', 'success');
+                showToast('Order deleted successfully!', 'success');
 
-                // Sync delete to Cloud Firestore
+                // Delete from Cloud Firestore via REST API
                 try {
-                    if (db) {
-                        await db.collection("orders").doc(id).delete();
-                        console.log(`Order ${id} deleted from Cloud Firestore`);
-                    }
+                    await firestoreDelete('orders', id);
+                    console.log(`Order ${id} deleted from Cloud Firestore`);
                 } catch (err) {
-                    console.warn("Cloud order delete sync warning:", err);
+                    console.warn('Cloud order delete warning:', err.message);
                 }
             }
         };
