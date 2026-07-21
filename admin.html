@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <title>Terinn Fit - Admin Luxury Portal</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,12 +33,20 @@
             box-sizing: border-box;
         }
 
+        html {
+            overscroll-behavior: none;
+        }
+
         body {
             background-color: var(--color-bg);
             color: var(--color-text-dark);
             font-family: var(--font-body);
             line-height: 1.5;
             overflow-x: hidden;
+            max-width: 100vw;
+            overscroll-behavior-y: none;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         /* ─── Preloader ─── */
@@ -2022,16 +2030,18 @@
             save('terinn_admin_orders', orders);
             renderOrdersTable();
             updateKPIs();
-            showToast(`Order ${id} status updated to ${status}!`, 'info');
 
             // Sync update to Cloud Firestore in real time
             try {
                 if (db) {
                     await db.collection("orders").doc(id).set({ status }, { merge: true });
-                    console.log(`Synced status for Order ${id} to Cloud: ${status}`);
+                    showToast(`Order ${id} → ${status} synced to Cloud ✓`, 'success');
+                } else {
+                    showToast(`Order ${id} status updated locally (no cloud sync)`, 'info');
                 }
             } catch (err) {
-                console.warn("Cloud order status sync warning:", err);
+                console.error("Cloud order status sync FAILED:", err.code, err.message);
+                showToast(`Cloud sync failed: ${err.code || err.message}. Check Firestore rules!`, 'error');
             }
         };
 

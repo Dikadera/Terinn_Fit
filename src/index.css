@@ -36,7 +36,8 @@ html {
     scroll-behavior: smooth;
     font-size: 16px;
     height: 100%;
-    height: -webkit-fill-available;
+    /* Prevent iOS bounce/rubber-band effect causing shakiness */
+    overscroll-behavior: none;
 }
 
 body {
@@ -45,8 +46,13 @@ body {
     font-family: var(--font-body);
     line-height: 1.6;
     overflow-x: hidden;
-    height: 100%;
-    min-height: -webkit-fill-available;
+    /* Prevent horizontal scroll shifts */
+    max-width: 100vw;
+    /* Prevent iOS momentum scroll causing layout shifts */
+    overscroll-behavior-y: none;
+    /* Prevent address bar resize from shaking layout */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 #root,
@@ -487,7 +493,10 @@ a {
 .hero-section-new {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    /* Use dvh (dynamic viewport height) to prevent address bar shake */
+    min-height: 100dvh;
+    min-height: 100vh; /* fallback */
+    min-height: 100svh; /* small viewport height - most stable on mobile */
     background-color: #70313c;
     display: flex;
     flex-direction: column;
@@ -495,6 +504,9 @@ a {
     justify-content: center;
     padding-top: 0px;
     overflow: hidden;
+    /* GPU layer to prevent repaints during scroll */
+    will-change: auto;
+    transform: translateZ(0);
 }
 
 .hero-social-links-row {
@@ -3147,7 +3159,9 @@ a {
 /* Media Queries & Responsive Layouts */
 @media (max-width: 1024px) {
     .hero-section-new {
-        min-height: 100vh;
+        /* svh = stable viewport height, unaffected by address bar on iOS/Android */
+        min-height: 100svh;
+        min-height: 100vh; /* fallback for older browsers */
         height: auto;
         padding-bottom: 2rem;
     }
@@ -4239,9 +4253,13 @@ a {
 .ta-admin-shell {
     display: flex;
     min-height: 100vh;
+    min-height: 100svh;
     background: #f8f6f3;
     font-family: var(--font-body);
     position: relative;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* ── Sidebar ───────────────────────────────────────────────────── */
@@ -4252,11 +4270,15 @@ a {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100svh;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 50;
     transition: transform 0.28s ease;
+    /* Prevent sidebar scroll from affecting main page */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ta-sidebar-logo {
@@ -4343,8 +4365,11 @@ a {
     flex: 1;
     margin-left: 255px;
     min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+    max-width: calc(100vw - 255px);
 }
 
 .ta-topbar {
@@ -5432,4 +5457,102 @@ a {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: rgba(255, 255, 255, 0.85);
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILE STABILITY — Prevents screen shake / jitter
+   Root causes: iOS address bar resize, horizontal
+   overflow, momentum scroll, and repaint thrashing.
+══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+    /* Prevent ANY horizontal overflow causing sideways shake */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        position: relative;
+    }
+
+    /* Prevent address bar resize from causing layout reflow */
+    body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Navbar — keep stable on scroll */
+    .navbar {
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100vw;
+        will-change: transform;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+
+    /* Hero — use stable small viewport height */
+    .hero-section-new {
+        min-height: 100svh;
+        min-height: -webkit-fill-available;
+    }
+
+    /* Prevent modals / overlays from causing scroll shake */
+    .quick-view-modal-overlay,
+    .checkout-modal-overlay,
+    .cart-drawer-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        overscroll-behavior: contain;
+        touch-action: none;
+    }
+
+    /* Cart drawer — prevent inner scroll from shaking page */
+    .cart-drawer {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+
+    /* Floating social dock — keep anchored, no reflow */
+    .floating-side-social-dock {
+        position: fixed !important;
+        right: 0 !important;
+        will-change: transform;
+        transform: translateZ(0);
+    }
+
+    /* Ticker/marquee — isolated to avoid causing body reflow */
+    .ticker-tape-wrapper {
+        transform: translateZ(0);
+        will-change: transform;
+    }
+
+    /* Product grid — prevent overflow causing horizontal jitter */
+    .products-grid,
+    .store-grid {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* Track modal — fixed, not affected by scroll */
+    .track-modal-card {
+        max-height: 90svh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Admin: mobile sidebar should not cause page shift */
+    .ta-admin-shell {
+        overflow-x: hidden;
+    }
+
+    .ta-main {
+        margin-left: 0 !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+    }
 }
