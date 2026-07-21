@@ -1,20 +1,21 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 
-// Firebase Project Credentials for degree-ce3ad
+// Official Firebase Project Credentials for degree-ce3ad
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyB-DEFAULT_TEST_KEY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "degree-ce3ad.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "degree-ce3ad",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "degree-ce3ad.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "732049102938",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:732049102938:web:a1b2c3d4e5f6g7h8"
+  apiKey: "AIzaSyAk2epUFGW2PWvW3aq0EJWGlRepTxWKkzU",
+  authDomain: "degree-ce3ad.firebaseapp.com",
+  projectId: "degree-ce3ad",
+  storageBucket: "degree-ce3ad.firebasestorage.app",
+  messagingSenderId: "277688141959",
+  appId: "1:277688141959:web:98b06858d81b59250c9022",
+  measurementId: "G-PTL0ZRFD7W"
 };
 
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Database 'terinn' as configured in Cloud Firestore Console
+// Connect to Database 'terinn' or default Firestore
 let firestoreDb;
 try {
   firestoreDb = getFirestore(app, "terinn");
@@ -60,23 +61,13 @@ export async function saveOrderToCloud(order) {
 }
 
 /**
- * Fetch an order by ID from local storage OR Cloud Firestore across devices.
+ * Fetch an order by ID from Cloud Firestore FIRST across devices.
  */
 export async function fetchOrderFromCloud(searchQuery) {
   if (!searchQuery) return null;
   const queryClean = searchQuery.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  // 1. Check Local Storage First
-  try {
-    const local = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
-    const match = local.find(o => {
-      const oidClean = (o.id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      return oidClean === queryClean || (queryClean.length >= 4 && oidClean.includes(queryClean));
-    });
-    if (match) return match;
-  } catch (e) { }
-
-  // 2. Query Cloud Firestore
+  // 1. Query Cloud Firestore FIRST to get the live status updated by Admin!
   try {
     if (db) {
       // Try exact doc ID lookup
@@ -85,7 +76,13 @@ export async function fetchOrderFromCloud(searchQuery) {
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         const orderData = snap.data();
-        saveOrderToCloud(orderData); // cache locally
+        // Cache locally
+        try {
+          const local = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+          const filtered = local.filter(o => o.id !== orderData.id);
+          filtered.unshift(orderData);
+          localStorage.setItem('terinn_admin_orders', JSON.stringify(filtered));
+        } catch (e) { }
         return orderData;
       }
 
@@ -103,13 +100,28 @@ export async function fetchOrderFromCloud(searchQuery) {
       });
 
       if (cloudMatch) {
-        saveOrderToCloud(cloudMatch); // cache locally
+        try {
+          const local = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+          const filtered = local.filter(o => o.id !== cloudMatch.id);
+          filtered.unshift(cloudMatch);
+          localStorage.setItem('terinn_admin_orders', JSON.stringify(filtered));
+        } catch (e) { }
         return cloudMatch;
       }
     }
   } catch (err) {
-    console.warn("Firestore query error:", err);
+    console.warn("Firestore live query error:", err);
   }
+
+  // 2. Local Storage Fallback
+  try {
+    const local = JSON.parse(localStorage.getItem('terinn_admin_orders') || '[]');
+    const match = local.find(o => {
+      const oidClean = (o.id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      return oidClean === queryClean || (queryClean.length >= 4 && oidClean.includes(queryClean));
+    });
+    if (match) return match;
+  } catch (e) { }
 
   return null;
 }
